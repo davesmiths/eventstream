@@ -3,52 +3,71 @@
 
     'use strict';
 
-    var db = {}
-        ,trigger
-        ,on
-    ;
+    var eventstreamjs = {
     
-    trigger = function(id, fn) {
-    
-        var done
-            ,fnexists = fn ? true : false
-        ;
-        
-        db[id] = db[id] || {count:0,length:0,callback:[]};
-        
-        db[id].length += 1;
-        
-        done = function() {
-            var cb = function() {
-                var dbidcallbacklength = db[id].callback.length
-                    ,i
+        "new":function() {
+            
+            var rtn
+                ,on
+                ,trigger
+                ,ons = {}
+            ;
+            
+            trigger = function(id, anything, collect) {
+            
+                var e = {}
+                    ,callbacks
                 ;
-                db[id].count += 1;
-                if (db[id].count === db[id].length && dbidcallbacklength) {
-                    for (i = 0; i < dbidcallbacklength; i++) {
-                        db[id].callback[i]();
-                    }
+                
+                // if ons[id] does not exist do nothing
+                if (ons[id] !== undefined) {
+                    
+                    e.id = id;
+                    e.triggers = ons[id].triggers += 1;
+                    e.triggered = ons[id].triggered += 1;
+                    
+                    callbacks = function() {
+                        var i,
+                            onsidcallbacklength = ons[id].callback.length
+                        ;
+                        for (i = 0; i < onsidcallbacklength; i++) {
+                            if (ons[id].callback[i].collect) {
+                                setTimeout((function(ons,id, i, anything) {
+                                    return function() {
+console.log(e.triggered, ons[id].triggered);
+                                        ons[id].callback[i].fn(e, anything);
+                                }}(ons, id, i, anything)), 1);
+                            }
+                            else {
+                                ons[id].callback[i].fn({id:id, triggered:e.triggered, triggers:ons[id].triggers}, anything);
+                            }
+                        }
+                    };
+                    setTimeout(callbacks,collect);
+                    
                 }
-            }
-            // If the function exists then treat as a async, even if no AJAX is done in the function
-            if (fnexists) {
-                // setTimeout ensures all triggers are collected into the db before a done is called, thus allowing db[id].length to be more than 1
-                setTimeout(cb, 1);
-            }
-            // Otherwise call done immediately, allows the use of the on/trigger pattern without using setTimeout unnecessarily
-            else {
-                cb();
-            }
+                
+            };
+            
+            on = function(id, fn, collect) {
+                ons[id] = ons[id] || {triggered:0,triggers:0,callback:[]};
+                collect = collect === undefined ? false : collect;
+                ons[id].callback.push({fn:fn, collect:collect});
+            };
+            
+            rtn = {
+                on:on
+                ,trigger:trigger
+            };
+            
+            eventstreamjs.streams.push(rtn);
+            
+            return rtn;
         }
-        fn = fn || function(done) {done()};
-        fn(done);
+        ,streams: []
     };
     
-    on = function(id, fn) {
-        db[id] = db[id] || {count:0,length:0,callback:[]};
-        db[id].callback.push(fn);
-    };
-    
-    context.eventstream = {on: on, trigger: trigger};
+    context.eventstreamjs = eventstreamjs;
+    context.eventstream = context.eventstream || eventstreamjs.new();
             
 }(this));
