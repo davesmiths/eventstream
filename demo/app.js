@@ -33,16 +33,22 @@ eventstream.do('boom', '2');
 eventstream.do('boom', '3');
 bob.do('boom');
 
-setTimeout(function() {
-    eventstream.do('tree', '1', true);
-},100);
+//setTimeout(function() {
+//    eventstream.do('tree', '1', true);
+//},100);
 eventstream.do('tree', '2', true);
 
-eventstream('sue').do('tree', '3', true);
+//eventstream('sue').do('tree', '3', true);
+var a = eventstream('sue');
+var b = eventstream('sue')('bob');
+var c = eventstream('harry');
+console.log(a.ns);
+console.log(b.ns);
+console.log(c.ns);
 
 // Log
-console.log('Array of event streams created', eventstream.streams);
-console.log('Array of event streams created', bob.streams);
+//console.log('Array of event streams created', eventstream.streams);
+//console.log('Array of event streams created', bob.streams);
 
 
 /*

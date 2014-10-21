@@ -3,41 +3,36 @@
 
     'use strict';
 
-    var eventstream
-        ,streams = []
-    ;
-    
+    var eventstream,
+        streams = [];
+
     eventstream = function() {
-            
-        var rtn
-            ,when
-            ,off
-            ,doo
-            ,create
-            ,ons = {streams:{},ons:{}}
-        ;
-        
+
+        var rtn,
+            when,
+            doo,
+            ons = {substreams:{},ons:{}};
+
         doo = function(id, anything) {
-        
-            var e = {id:id}
-                ,i
-                ,onCallbackLength
-                ,on = ons[id]
-            ;
-            
+
+            var e = {id:id},
+                i,
+                onCallbackLength,
+                on = ons[id];
+
             // if ons[id] does not exist do nothing
             if (on !== undefined) {
-                
+
                 onCallbackLength = on.callback.length;
-                
+
                 for (i = 0; i < onCallbackLength; i++) {
                     on.callback[i](e, anything);
                 }
-                
+
             }
-            
+
         };
-        
+
         when = function(id, fn) {
             if (fn) {
                 ons[id] = ons[id] || {callback:[]};
@@ -47,25 +42,28 @@
                 ons[id].callback = [];
             }
         };
-        
+
         rtn = function(ns) {
-            if (ons.streams[ns])
+            var rtnns = [];
+            rtnns.push(ns);
+            rtn.ns = rtnns;
             return rtn;
         };
-        
+        rtn.ns = [];
+
         rtn.when = when;
         rtn.do = doo;
         rtn.new = eventstream;
         rtn.streams = streams;
-        
+
         streams.push(rtn);
-        
+
         return rtn;
-        
+
     };
-    
+
     context.eventstream = eventstream();
-            
+
 }(this));
 /*
 
@@ -87,8 +85,6 @@ Clear
     jsevs('imagefill').when('bob opens the door')
 Trigger
     jsevs('sue').do('bob opens the door', 'he's wearing green!');
-jsev    
+jsev
 
 */
-
-
