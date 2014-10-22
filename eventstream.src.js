@@ -67,24 +67,48 @@
 }(this));
 /*
 
+
+
+
+
+
+
 Add
-    jsevs.when('bob opens the door', 'do this')
+    js.when('bob opens the door', 'do this')
+    js.on('bob opens the door', 'do this')
+
 Clear
-    jsevs.when('bob opens the door', 'do nothing')
-    jsevs.when('bob opens the door', null|0|false|undefined)
+    js.when('bob opens the door', 'do nothing')
+    js.when('bob opens the door', null|0|false|undefined)
+
 Trigger
-    jsevs.do('bob opens the door', 'he's wearing green!');
+    js.do('bob opens the door', 'he's wearing green!');
+
 
 Namespaced
+
 Add
-    jsevs('sue').when('bob opens the door', 'do this')
-    jsevs('imagefill').when('bob opens the door', function() {})
+    js('sue').when('bob opens the door', 'do this')
+    js('imagefill').when('bob opens the door', function() {})
+
 Clear
-    jsevs('sue').when('bob opens the door', 'do nothing')
-    jsevs('harry').when('bob opens the door', null|0|false|undefined)
-    jsevs('imagefill').when('bob opens the door')
+    js('sue').when('bob opens the door', 'do nothing')
+    js('harry').when('bob opens the door', null|0|false|undefined)
+    js('imagefill').when('bob opens the door')
+
 Trigger
-    jsevs('sue').do('bob opens the door', 'he's wearing green!');
-jsev
+    js('sue').do('bob opens the door', 'he's wearing green!');
+
+
+
+
+
+
+
+
+
+
+
+
 
 */
