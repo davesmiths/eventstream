@@ -13,7 +13,7 @@
             doo,
             ons = {substreams:{},ons:{}};
 
-        doo = function(id, anything) {
+        this.doo = function(id, anything) {
 
             var e = {id:id},
                 i,
@@ -33,7 +33,7 @@
 
         };
 
-        when = function(id, fn) {
+        this.when = function(id, fn) {
             if (fn) {
                 ons[id] = ons[id] || {callback:[]};
                 ons[id].callback.push(fn);
@@ -62,7 +62,7 @@
 
     };
 
-    context.eventstream = eventstream();
+    context.eventstream = new eventstream();
 
 }(this));
 /*
@@ -104,6 +104,11 @@ Trigger
 
 
 
+
+'bob opens the door'
+    all handlers are fired
+sue('bob opens the door')
+    sue handlers are fired and all sub-sue handlers
 
 
 
