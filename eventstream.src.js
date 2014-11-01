@@ -1,70 +1,143 @@
 // Custom events
-(function(context) {
+(function(context, undefined) {
 
     'use strict';
 
     var eventstream,
-        streams = [];
+        streams = [],
+        create,
+        events = {};
 
-    eventstream = function() {
+    // Thanks to Crockford
+    if (typeof Object.create !== 'function') {
+        Object.create = function (o) {
+            function F() {}
+            F.prototype = o;
+            return new F();
+        };
+    }
 
-        var rtn,
-            when,
-            doo,
-            ons = {substreams:{},ons:{}};
+    eventstream = {
 
-        this.doo = function(id, anything) {
+        make: function(id, anything) {
 
             var e = {id:id},
                 i,
-                onCallbackLength,
-                on = ons[id];
+                j,
+                on = events[id],
+                onLength,
+                make;
 
-            // if ons[id] does not exist do nothing
+//console.log('a', this);
+
+            // if events[id] does not exist do nothing
             if (on !== undefined) {
 
-                onCallbackLength = on.callback.length;
-
-                for (i = 0; i < onCallbackLength; i++) {
-                    on.callback[i](e, anything);
+                onLength = on.length;
+//console.log(this);
+                for (i = 0; i < onLength; i++) {
+                    // Check if the namespace is ok
+                    make = false;
+                    for (j = 0; j < on[i].ns.length; j++) {
+                        if (on[i].ns[j] === this) {
+                            make = true;
+                        }
+                    }
+                    if (make) {
+                        on[i].callback(e, anything);
+                    }
+                    //on[i](e, anything);
                 }
 
             }
 
-        };
+        },
 
-        this.when = function(id, fn) {
+        when: function(id, fn) {
+
+            var on,
+                onLength,
+                make,
+                i;
+
+            on = events[id] = events[id] || [];
+
             if (fn) {
-                ons[id] = ons[id] || {callback:[]};
-                ons[id].callback.push(fn);
+                on.push({callback:fn, ns:this.nsArray.slice()});
+                // slice() to make sure to copy the array and not use a reference to the original object
             }
+            // Remove events by sending no fn
             else {
-                ons[id].callback = [];
+
+                // if on does not exist do nothing
+                if (on !== undefined) {
+
+                    onLength = on.length;
+
+                    for (i = onLength - 1; i > -1; i--) {
+
+                        // Check if the namespace is ok
+                        make = false;
+
+                        if (on[i].ns[on[i].ns.length - 1] === this) {
+                            make = true;
+                        }
+                        if (make) {
+                            on.splice(i, 1);
+                        }
+                        //on[i](e, anything);
+                    }
+
+                }
+
             }
-        };
+        },
+        ns: function(ns) {
+            var next = Object.create(this);
+            next.poo = ns;
+            // Add the namespace object to the namespace array, but not update any existing arrays
+            next.nsArray = (this.nsArray) ? this.nsArray.slice() : [];
+            next.nsArray.push(next);
+            return next;
+        }
 
-        rtn = function(ns) {
-            var rtnns = [];
-            rtnns.push(ns);
-            rtn.ns = rtnns;
-            return rtn;
-        };
-        rtn.ns = [];
-
-        rtn.when = when;
-        rtn.do = doo;
-        rtn.new = eventstream;
-        rtn.streams = streams;
-
-        streams.push(rtn);
-
-        return rtn;
 
     };
+    // Add the eventstream object to an index of namespaces
+    eventstream.nsArray = [eventstream];
+    eventstream.on = eventstream.when;
 
-    context.eventstream = new eventstream();
+    context.eventstream = eventstream;
+
+    // Test nsArrays are correct
+    var a = context.eventstream.ns('a');
+    var b = a.ns('b');
+    var c = b.ns('c');
+    var bb = a.ns('bb');
+    console.log(context.eventstream);
+    console.log(a);
+    console.log(b);
+    console.log(c);
+    console.log(bb);
+
+    b.when('the door opens', function(e, data) {
+        console.log('door opened ns b, ', data);
+    });
+    c.when('the door opens', function(e, data) {
+        console.log('door opened ns c, ', data);
+    });
+
+    a.make('the door opens', 'a'); // Should fire
+    b.make('the door opens', 'b'); // Should fire
+    bb.make('the door opens', 'bb'); // Should not fire
+    c.make('the door opens', 'c'); // Should not fire
+
+    c.when('the door opens', function() {console.log('second c');});
+    b.when('the door opens');
+    a.make('the door opens', 'a after removing b'); // Should fire two c but no b
 
 }(this));
+
 /*
 
 
@@ -102,7 +175,8 @@ Trigger
 
 
 
-
+js.bob => 1;
+js('sue')
 
 
 'bob opens the door'
