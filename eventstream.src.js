@@ -92,7 +92,7 @@
 
             }
         },
-        ns: function(ns) {
+        new: function(ns) {
             var next = Object.create(this);
             next.poo = ns;
             // Add the namespace object to the namespace array, but not update any existing arrays
@@ -106,35 +106,38 @@
     // Add the eventstream object to an index of namespaces
     eventstream.nsArray = [eventstream];
     eventstream.on = eventstream.when;
+    eventstream.off = eventstream.when;
 
     context.eventstream = eventstream;
 
-    // Test nsArrays are correct
-    var a = context.eventstream.ns('a');
-    var b = a.ns('b');
-    var c = b.ns('c');
-    var bb = a.ns('bb');
-    console.log(context.eventstream);
-    console.log(a);
-    console.log(b);
-    console.log(c);
-    console.log(bb);
 
-    b.when('the door opens', function(e, data) {
-        console.log('door opened ns b, ', data);
-    });
-    c.when('the door opens', function(e, data) {
-        console.log('door opened ns c, ', data);
-    });
 
-    a.make('the door opens', 'a'); // Should fire
-    b.make('the door opens', 'b'); // Should fire
-    bb.make('the door opens', 'bb'); // Should not fire
-    c.make('the door opens', 'c'); // Should not fire
+    // A wee bit of testing
+    //var a = context.eventstream.new('a');
+    //var b = a.new('b');
+    //var c = b.new('c');
+    //var bb = a.new('bb');
+    //console.log(context.eventstream);
+    //console.log(a);
+    //console.log(b);
+    //console.log(c);
+    //console.log(bb);
 
-    c.when('the door opens', function() {console.log('second c');});
-    b.when('the door opens');
-    a.make('the door opens', 'a after removing b'); // Should fire two c but no b
+    //b.when('the door opens', function(e, data) {
+    //    console.log('door opened ns b, ', data);
+    //});
+    //c.when('the door opens', function(e, data) {
+    //    console.log('door opened ns c, ', data);
+    //});
+
+    //a.make('the door opens', 'a'); // Should fire
+    //b.make('the door opens', 'b'); // Should fire
+    //bb.make('the door opens', 'bb'); // Should not fire
+    //c.make('the door opens', 'c'); // Should not fire
+
+    //c.when('the door opens', function() {console.log('second c');});
+    //b.when('the door opens');
+    //a.make('the door opens', 'a after removing b'); // Should fire two c but no b
 
 }(this));
 
