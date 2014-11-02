@@ -139,6 +139,22 @@
     //b.when('the door opens');
     //a.make('the door opens', 'a after removing b'); // Should fire two c but no b
 
+    //a.when('the door is opened', function() {});
+    //a.on('the door being opened', function() {});
+    //a.now('the door being opened', function() {});
+
+    $.ajax('some.json').done(function() {
+        es.call('ajax loaded');
+        es.do('ajax loaded');
+    });
+
+    es.when('ajax loaded', function() {
+    });
+    es.if('ajax loaded', function() {
+    });
+    es.on('ajax loaded', function() {
+    });
+
 }(this));
 
 /*

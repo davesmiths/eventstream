@@ -17,7 +17,7 @@ eventstream.when('boom', function(e, anything) {
 });
 eventstream.when('tree', function(e, anything) {
    console.log(e, anything, this);
-}, true);
+});
 bob.when('boom', function(e, anything) {
    console.log('boom event handled in bob custom eventstream, callback 3', e, anything, this);
 });
@@ -29,10 +29,10 @@ eventstream.make('boom', '2');
 eventstream.make('boom', '3');
 bob.make('boom');
 //setTimeout(function() {
-//    eventstream.do('tree', '1', true);
+//    eventstream.make('tree', '1', true);
 //},100);
-eventstream.make('tree', '2', true);
-//eventstream('sue').do('tree', '3', true);
+eventstream.make('tree', '2');
+//eventstream('sue').make('tree', '3', true);
 // Log
 //console.log('Array of event streams created', eventstream.streams);
 //console.log('Array of event streams created', bob.streams);
