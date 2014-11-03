@@ -19,7 +19,7 @@
 
     eventstream = {
 
-        make: function(id, anything) {
+        call: function(id, anything) {
 
             var e = {id:id},
                 i,
@@ -107,6 +107,9 @@
     eventstream.nsArray = [eventstream];
     eventstream.on = eventstream.when;
     eventstream.off = eventstream.when;
+    eventstream.if = eventstream.when;
+    eventstream.trigger = eventstream.call;
+    eventstream.do = eventstream.call;
 
     context.eventstream = eventstream;
 
@@ -142,10 +145,13 @@
     //a.when('the door is opened', function() {});
     //a.on('the door being opened', function() {});
     //a.now('the door being opened', function() {});
-
+    var $ = {ajax:function(){return {done:function(){}};}};
     $.ajax('some.json').done(function() {
+        es.trigger('ajax loaded');
         es.call('ajax loaded');
         es.do('ajax loaded');
+        //es.fire('ajax loaded');
+        //es.trip('ajax loaded');
     });
 
     es.when('ajax loaded', function() {
