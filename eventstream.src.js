@@ -3,11 +3,6 @@
 
     'use strict';
 
-    var eventstream,
-        streams = [],
-        create,
-        events = {};
-
     // Thanks to Crockford
     if (typeof Object.create !== 'function') {
         Object.create = function (o) {
@@ -17,134 +12,192 @@
         };
     }
 
-    eventstream = {
+    var wrap = function() {
 
-        call: function(id, anything) {
+        var evntstream,
+            evnts = {},
+            history = {};
 
-            var e = {id:id},
-                i,
-                j,
-                on = events[id],
-                onLength,
-                make;
+        evntstream = {
 
-//console.log('a', this);
+            call: function(id, anything) {
 
-            // if events[id] does not exist do nothing
-            if (on !== undefined) {
+                var e = {id:id},
+                    i,
+                    j,
+                    evntArray = evnts[id],
+                    evntArrayLength,
+                    date,
+                    callback;
 
-                onLength = on.length;
-//console.log(this);
-                for (i = 0; i < onLength; i++) {
-                    // Check if the namespace is ok
-                    make = false;
-                    for (j = 0; j < on[i].ns.length; j++) {
-                        if (on[i].ns[j] === this) {
-                            make = true;
-                        }
-                    }
-                    if (make) {
-                        on[i].callback(e, anything);
-                    }
-                    //on[i](e, anything);
+                // if evnts[id] does not exist do nothing
+                if (evntArray === undefined) {
+                    evntArray = evnts[id] = [];
                 }
 
-            }
+                evntArrayLength = evntArray.length;
 
-        },
+                date = new Date() * 1;
+                
+                history[date] = history[date] || [];
 
-        when: function(id, fn) {
+                history[date].push({id:id, anything:anything});
+console.log(history);
 
-            var on,
-                onLength,
-                make,
-                i;
+                if (evntArrayLength) {
 
-            on = events[id] = events[id] || [];
+                    for (i = 0; i < evntArrayLength; i++) {
 
-            if (fn) {
-                on.push({callback:fn, ns:this.nsArray.slice()});
-                // slice() to make sure to copy the array and not use a reference to the original object
-            }
-            // Remove events by sending no fn
-            else {
+                        callback = false;
 
-                // if on does not exist do nothing
-                if (on !== undefined) {
-
-                    onLength = on.length;
-
-                    for (i = onLength - 1; i > -1; i--) {
-
-                        // Check if the namespace is ok
-                        make = false;
-
-                        if (on[i].ns[on[i].ns.length - 1] === this) {
-                            make = true;
+                        for (j = 0; j < evntArray[i].ns.length; j++) {
+                            if (evntArray[i].ns[j] === this) {
+                                callback = true;
+                            }
                         }
-                        if (make) {
-                            on.splice(i, 1);
+
+                        if (callback) {
+                            evntArray[i].callback(e, anything);
                         }
-                        //on[i](e, anything);
+
                     }
 
                 }
 
-            }
-        },
-        new: function(ns) {
-            var next = Object.create(this);
-            next.poo = ns;
-            // Add the namespace object to the namespace array, but not update any existing arrays
-            next.nsArray = (this.nsArray) ? this.nsArray.slice() : [];
-            next.nsArray.push(next);
-            return next;
-        }
+            },
 
+            when: function(id, fn, now) {
+
+                var evntArray,
+                    evntArrayLength,
+                    evntArrayExisted,
+                    callback,
+                    i;
+
+                now = now === undefined ? false : now;
+
+                evntArrayExisted = evnts[id] !== undefined;
+
+                evntArray = evnts[id] = evnts[id] || [];
+
+                if (fn) {
+                    evntArray.push({
+                        callback:fn,
+                        ns:this.nsArray.slice()
+                    });
+                    if (now && evntArrayExisted) {
+                        this.call(id, fn);
+                    }
+                    // slice() to make sure a copy of the array is used, not a reference to the original object
+                }
+                // Remove evnts by sending no fn
+                else {
+
+                    // if evntArray does not exist do nothing
+                    if (evntArray !== undefined) {
+
+                        evntArrayLength = evntArray.length;
+
+                        for (i = evntArrayLength - 1; i > -1; i--) {
+
+                            // Check if the namespace is ok
+                            callback = false;
+
+                            if (evntArray[i].ns[evntArray[i].ns.length - 1] === this) {
+                                callback = true;
+                            }
+                            if (callback) {
+                                evntArray.splice(i, 1);
+                            }
+
+                        }
+
+                    }
+
+                }
+            },
+            new: function(separateStream) {
+                var next;
+                if (separateStream === true) {
+                    next = wrap();
+                }
+                // Else create a sub-stream
+                else {
+                    next = Object.create(this);
+                    // Add the namespace object to the namespace array, but not update any existing arrays
+                    next.nsArray = (this.nsArray) ? this.nsArray.slice() : [];
+                    next.nsArray.push(next);
+                }
+                return next;
+            }
+
+
+        };
+
+        // Add the evntstream object to an index of namespaces
+        evntstream.nsArray = [evntstream];
+        evntstream.on = evntstream.when;
+        evntstream.off = evntstream.when;
+        evntstream.if = function(id, fn, now) {
+            now = now === undefined ? true : now;
+            evntstream.when(id, fn, now);
+        };
+        evntstream.trigger = evntstream.call;
+        evntstream.do = evntstream.call;
+
+        return evntstream;
 
     };
-    // Add the eventstream object to an index of namespaces
-    eventstream.nsArray = [eventstream];
-    eventstream.on = eventstream.when;
-    eventstream.off = eventstream.when;
-    eventstream.if = eventstream.when;
-    eventstream.trigger = eventstream.call;
-    eventstream.do = eventstream.call;
 
-    context.eventstream = eventstream;
-
+    context.evntstream = wrap();
 
 
     // A wee bit of testing
-    //var a = context.eventstream.new('a');
-    //var b = a.new('b');
-    //var c = b.new('c');
-    //var bb = a.new('bb');
-    //console.log(context.eventstream);
-    //console.log(a);
-    //console.log(b);
-    //console.log(c);
-    //console.log(bb);
+    var a = context.evntstream;
+    var b = a.new('b');
+    var c = b.new('c');
+    var bb = a.new('bb');
+    var z = c.new(true);
+    console.log(context.evntstream);
+    console.log(a);
+    console.log(b);
+    console.log(c);
+    console.log(bb);
 
-    //b.when('the door opens', function(e, data) {
-    //    console.log('door opened ns b, ', data);
-    //});
-    //c.when('the door opens', function(e, data) {
-    //    console.log('door opened ns c, ', data);
-    //});
+    //a.call('the door opens', 'a made the call before a handler was set'); // Should not fire
+    //b.call('the door opens', 'b made the call before a handler was set'); // Should not fire
+    //bb.call('the door opens', 'bb made the call before a handler was set'); // Should not fire
+    c.call('the door opens', 'c made the call before a handler was set'); // Should not fire
 
-    //a.make('the door opens', 'a'); // Should fire
-    //b.make('the door opens', 'b'); // Should fire
-    //bb.make('the door opens', 'bb'); // Should not fire
-    //c.make('the door opens', 'c'); // Should not fire
+    a.if('the door opens', function(e, data) {
+        console.log('door opened ns a, ', data);
+    });
+    a.when('the door opens', function(e, data) {
+        console.log('door opened ns a, ', data);
+    });
+    b.when('the door opens', function(e, data) {
+        console.log('door opened ns b, ', data);
+    });
+    c.when('the door opens', function(e, data) {
+        console.log('door opened ns c, ', data);
+    });
+    z.when('the door opens', function(e, data) {
+        console.log('door opened ns z, ', data);
+    });
 
-    //c.when('the door opens', function() {console.log('second c');});
-    //b.when('the door opens');
-    //a.make('the door opens', 'a after removing b'); // Should fire two c but no b
+    a.call('the door opens', 'a made the call'); // Should fire
+    b.call('the door opens', 'b made the call'); // Should fire
+    bb.call('the door opens', 'bb made the call'); // Should not fire
+    c.call('the door opens', 'c made the call'); // Should not fire
 
-    //a.when('the door is opened', function() {});
-    //a.on('the door being opened', function() {});
-    //a.now('the door being opened', function() {});
+    c.when('the door opens', function() {console.log('second c');});
+    b.when('the door opens');
+    a.call('the door opens', 'a made the call after removing b'); // Should fire two c but no b
+    z.call('the door opens', 'z made the call'); // Should fire two c but no b
+
+    a.when('the door is opened', function() {});
+    a.on('the door being opened', function() {});
+    a.call('the door being opened', function() {});
     var $ = {ajax:function(){return {done:function(){}};}};
     $.ajax('some.json').done(function() {
         es.trigger('ajax loaded');
@@ -156,10 +209,21 @@
 
     es.when('ajax loaded', function() {
     });
-    es.if('ajax loaded', function() {
-    });
     es.on('ajax loaded', function() {
     });
+    // Could be slightly different than the others, in that if "ajax loaded" has
+    // been fired already then it will do something
+    // This is different to when and on, which only do something when "ajax loaded"
+    // is fired
+    es.if('ajax loaded', function() {
+    });
+
+
+
+    // To do
+    // if
+    // Fresh copy of evntstream for a completely separate stream
+
 
 }(this));
 
