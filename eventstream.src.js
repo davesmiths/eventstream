@@ -16,6 +16,11 @@
         return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
     };
 
+    var eventFired = function(evnt) {
+        //history[date] = {id,anything,ns}
+        //evnt = {callback, ns[], created}
+    };
+
     var wrap = function() {
 
         var evntstream,
@@ -36,20 +41,17 @@
                     date,
                     callback;
 
-                // if evnts[id] does not exist do nothing
+                // if evnts[id] does not exist do nothing except prime the array
                 if (evntArray === undefined) {
                     evntArray = evnts[id] = [];
                 }
 
                 evntArrayLength = evntArray.length;
 
+                // Maintain a history log that is made use of in the _when function
                 date = new Date() * 1;
-
                 history[date] = history[date] || [];
-
-                history[date].push({id:id, anything:anything});
-
-console.log(history);
+                history[date].push({id:id, anything:anything, ns:this});
 
                 if (evntArrayLength) {
 
@@ -99,56 +101,86 @@ console.log(history);
                         ns:this.nsArray.slice(),
                         created:new Date() * 1
                     };
-                    evntArray.push(evnt);
+                    // slice() to make sure a copy of the array is used, not a reference to the original object
 
                     // Truth table: https://docs.google.com/spreadsheets/d/1yrLzB-RQcm5TArhgmG-g2jQt4VrBK51gkTWet0hA2QU/edit#gid=0
-                    if (o.from < 0) {
-                        if (o.to >= 0) {
-                            // Add handler
-                            // Call fn if already fired
-                            if (o.to !== Number.POSITIVE_INFINITY) {
-                                // Remove handler
-                                // Call fallback?
+                    if (o.from > o.to) {
+                        // ? make o.from 0 and o.to infinity, the default
+                        // or do nothing, yeah do nothing
+                    }
+                    else {
+
+                        if (o.from < 0) {
+
+                            if (o.to >= 0) {
+
+                                // Add the listener
+                                evntArray.push(evnt);
+
+                                // Call fn if the event was already fired
+                                if (eventFired(evnt)) {
+                                    evnt.fn();
+                                }
+
+                                if (o.to !== Number.POSITIVE_INFINITY) {
+                                    // o.to is 0 to big number
+
+                                    // After a delay remove the listener and maybe call the fallback
+                                    setTimeout(function() {
+
+                                        // Remove listener
+                                        evnt.callback = function(){};
+
+                                        // Call the fallback if the event was not fired
+                                        if (!eventFired(evnt)) {
+                                            evnt.fall();
+                                        }
+
+                                    }, o.to);
+
+                                }
+
+                            }
+                            else if (o.to !== Number.NEGATIVE_INFINITY) {
+                                // o.to is -1 to big negative number
+
+                                // Call fn if the event was already fired
+                                if (eventFired(evnt)) {
+                                    evnt.fn();
+                                }
+                                // Otherwise call the fallback
+                                else {
+                                    evnt.fall();
+                                }
+
                             }
                         }
-                        else if (o.to !== Number.NEGATIVE_INFINITY) {
-                            // Call fn if already fired
-                            // Call fallback?
-                        }
-                    }
-                    else if (o.from !== Number.POSITIVE_INFINITY) {
-                        if (o.to >= 0) {
+                        else if (o.from !== Number.POSITIVE_INFINITY) {
+                            if (o.to >= 0) {
+                                // o.to is 0 to infinity
 
-                            // Add handler with delay
+                                // After a delay add the listener
+                                setTimeout(function() {
+                                    evnt.created = new Date() * 1;
+                                    evntArray.push(evnt);
+                                }, o.from);
 
-                            if (o.to !== Number.POSITIVE_INFINITY) {
-                                // Remove handler
-                                // Call fallback?
+                                if (o.to !== Number.POSITIVE_INFINITY) {
+                                    // o.to is 0 to big number
+                                    // After a delay remove the listener and maybe call the fallback
+                                    setTimeout(function() {
+                                        // Remove the listener
+                                        evnt.callback = function(){};
+                                        // Call the fallback if the event was not fired
+                                        if (!eventFired(evnt)) {
+                                            evnt.fall();
+                                        }
+                                    }, o.to);
+                                }
+
                             }
-
                         }
                     }
-
-                    if (typeOf(o.to) === 'number') {
-                        // If to is a number and greater than 0 then it will need removing
-                        if (o.to > 0 && o.from === false) {
-                            setTimeout(function() {
-                                // Remove handler by replacing with a noop
-                                evnt.callback = function(){};
-                                //this.call(id, o.fall);
-                                // if there has been no calls, call the fallback
-                                // if there has been calls, do nothing
-                            }, o.to);
-                        }
-                        else {
-                            // if there were no calls, call the fallback
-                            // if there were calls, call the callback
-                        }
-                    }
-                    if (now && evntArrayExisted) {
-                        this.call(id, fn);
-                    }
-                    // slice() to make sure a copy of the array is used, not a reference to the original object
                 }
                 // Else remove the event handler
                 else {
@@ -236,9 +268,9 @@ console.log(history);
 
     // A wee bit of testing
     var a = context.evntstream;
-    var b = a.new('b');
-    var c = b.new('c');
-    var bb = a.new('bb');
+    var b = a.new();
+    var c = b.new();
+    var bb = a.new();
     var z = c.new(true);
     console.log(context.evntstream);
     console.log(a);
@@ -285,10 +317,12 @@ console.log(history);
     a.call('the door being opened', function() {});
 
 
-    //a.when('bob',8,-8,fn,fall);
+    //a.when('bob',fn);
     //a.when('bob',5000,fn,fall); // keep handler in place for 5 seconds
-    //a.when('bob',5000,-8,fn,fall); // keep handler in place for 5 seconds, and trigger if already called
-    //a.when('bob',5000,-5000,fn,fall); // keep handler in place for 5 seconds, and trigger if already called in the last 5 seconds
+    //a.when('bob',-5000,fn,fall); // keep handler in place for 5 seconds
+    //a.when('bob',-8,8,fn,fall);
+    //a.when('bob',-8, 5000,fn,fall); // keep handler in place for 5 seconds, and trigger if already called
+    //a.when('bob',-5000,5000,fn,fall); // keep handler in place for 5 seconds, and trigger if already called in the last 5 seconds
     // 8 used because it is similar to the infinity sign, and who is going to set something to +-8ms?
 
     //var $ = {ajax:function(){return {done:function(){}};}};
@@ -312,10 +346,6 @@ console.log(history);
     //});
 
 
-
-    // To do
-    // if
-    // Fresh copy of evntstream for a completely separate stream
 
 
 }(this));
