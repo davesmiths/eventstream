@@ -30,7 +30,7 @@
     var typeOf = function(o) {
             return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
         },
-        noOperation = function() {};
+        doNothing = function() {};
 
 
     var wrap = function() {
@@ -174,7 +174,7 @@
                                     setTimeout(function() {
 
                                         // Remove listener
-                                        evnt.callback = noOperation;
+                                        evnt.callback = doNothing;
 
                                         // Call the fallback if the event was not fired
                                         if (!eventFired(evnt, o.from, o.to)) {
@@ -215,7 +215,7 @@
                                     // After a delay remove the listener and maybe call the fallback
                                     setTimeout(function() {
                                         // Remove the listener
-                                        evnt.callback = noOperation;
+                                        evnt.callback = doNothing;
                                         // Call the fallback if the event was not fired
                                         if (!eventFired(evnt, o.from, o.to)) {
                                             evnt.fall();
@@ -276,7 +276,7 @@
 
         // Handlers
         evntstream.if = evntstream.on = evntstream.off = evntstream.when = function(a,b,c,d,e) {
-            var o = {id:a,to:Number.POSITIVE_INFINITY,from:0,fn:noOperation,fall:noOperation};
+            var o = {id:a,to:Number.POSITIVE_INFINITY,from:0,fn:doNothing,fall:doNothing};
             if (typeOf(b) === 'boolean') {
                 b = b ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
             }
@@ -357,9 +357,9 @@
     a.call('the door opens', 'a made the call after removing b'); // Should fire two c but no b
     z.call('the door opens', 'z made the call'); // Should fire two c but no b
 
-    a.when('the door is opened', noOperation);
-    a.on('the door being opened', noOperation);
-    a.call('the door being opened', noOperation);
+    a.when('the door is opened', doNothing);
+    a.on('the door being opened', doNothing);
+    a.call('the door being opened', doNothing);
 
 var fn = function() {
     console.log('fn');
@@ -375,7 +375,7 @@ var fall = function() {
     //a.when('bob',-5000,5000,fn,fall); // keep handler in place for 5 seconds, and trigger if already called in the last 5 seconds
     // 8 used because it is similar to the infinity sign, and who is going to set something to +-8ms?
 
-    //var $ = {ajax:function(){return {done:noOperation};}};
+    //var $ = {ajax:function(){return {done:doNothing};}};
     //$.ajax('some.json').done(function() {
     //    es.trigger('ajax loaded');
     //    es.call('ajax loaded');
@@ -424,7 +424,7 @@ Namespaced
 
 Add
     js('sue').when('bob opens the door', 'do this')
-    js('imagefill').when('bob opens the door', noOperation)
+    js('imagefill').when('bob opens the door', doNothing)
 
 Clear
     js('sue').when('bob opens the door', 'do nothing')
