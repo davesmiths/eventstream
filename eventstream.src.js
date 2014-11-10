@@ -28,8 +28,9 @@
     }
 
     var typeOf = function(o) {
-        return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-    };
+            return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+        },
+        noOperation = function() {};
 
 
     var wrap = function() {
@@ -87,8 +88,15 @@
                         }
                         else if (1 || callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams) {
                             console.log('streamsPath', this.streamsPath);
+                            // Loop through the path of streams from super to sub
+                            for (j = this.streamsPath.length - 1; j > -1; j--) {
+
+                            }
                         }
                         else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams) {
+                            // Loop through the path of streams from sub to super
+                            for (j = 0; j < this.streamsPath.length; j++) {
+                            }
                         }
                         // For example
                         // An event to fired on the root stream:
@@ -166,7 +174,7 @@
                                     setTimeout(function() {
 
                                         // Remove listener
-                                        evnt.callback = function(){};
+                                        evnt.callback = noOperation;
 
                                         // Call the fallback if the event was not fired
                                         if (!eventFired(evnt, o.from, o.to)) {
@@ -207,7 +215,7 @@
                                     // After a delay remove the listener and maybe call the fallback
                                     setTimeout(function() {
                                         // Remove the listener
-                                        evnt.callback = function(){};
+                                        evnt.callback = noOperation;
                                         // Call the fallback if the event was not fired
                                         if (!eventFired(evnt, o.from, o.to)) {
                                             evnt.fall();
@@ -251,7 +259,6 @@
                 if (createNewBaseStream === true) {
                     next = wrap();
                 }
-                // Else create a substream
                 else {
                     // Create the next substream, and add it to a copy of the current path of streams
                     next = Object.create(this);
@@ -269,7 +276,7 @@
 
         // Handlers
         evntstream.if = evntstream.on = evntstream.off = evntstream.when = function(a,b,c,d,e) {
-            var o = {id:a,to:Number.POSITIVE_INFINITY,from:0,fn:function(){},fall:function(){}};
+            var o = {id:a,to:Number.POSITIVE_INFINITY,from:0,fn:noOperation,fall:noOperation};
             if (typeOf(b) === 'boolean') {
                 b = b ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
             }
@@ -350,9 +357,9 @@
     a.call('the door opens', 'a made the call after removing b'); // Should fire two c but no b
     z.call('the door opens', 'z made the call'); // Should fire two c but no b
 
-    a.when('the door is opened', function() {});
-    a.on('the door being opened', function() {});
-    a.call('the door being opened', function() {});
+    a.when('the door is opened', noOperation);
+    a.on('the door being opened', noOperation);
+    a.call('the door being opened', noOperation);
 
 var fn = function() {
     console.log('fn');
@@ -368,7 +375,7 @@ var fall = function() {
     //a.when('bob',-5000,5000,fn,fall); // keep handler in place for 5 seconds, and trigger if already called in the last 5 seconds
     // 8 used because it is similar to the infinity sign, and who is going to set something to +-8ms?
 
-    //var $ = {ajax:function(){return {done:function(){}};}};
+    //var $ = {ajax:function(){return {done:noOperation};}};
     //$.ajax('some.json').done(function() {
     //    es.trigger('ajax loaded');
     //    es.call('ajax loaded');
@@ -417,7 +424,7 @@ Namespaced
 
 Add
     js('sue').when('bob opens the door', 'do this')
-    js('imagefill').when('bob opens the door', function() {})
+    js('imagefill').when('bob opens the door', noOperation)
 
 Clear
     js('sue').when('bob opens the door', 'do nothing')
