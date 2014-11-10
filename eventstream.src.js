@@ -245,15 +245,16 @@
 
                 }
             },
-            new: function(separateStream) {
+            new: function(createNewBaseStream) {
+                // May add ability to label a stream for later retrieval
                 var next;
-                if (separateStream === true) {
+                if (createNewBaseStream === true) {
                     next = wrap();
                 }
-                // Else create a sub-stream
+                // Else create a substream
                 else {
+                    // Create the next substream, and add it to a copy of the current path of streams
                     next = Object.create(this);
-                    // Add the namespace object to the namespace array, but not update any existing arrays
                     next.streamsPath = this.streamsPath.slice();
                     next.streamsPath.push(next);
                 }
@@ -263,7 +264,7 @@
 
         };
 
-        // Add the current stream as the first stream in the streams path
+        // Add the current stream as the first node in the path of streams
         evntstream.streamsPath = [evntstream];
 
         // Handlers
