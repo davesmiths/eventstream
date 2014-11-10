@@ -254,7 +254,7 @@
                 else {
                     next = Object.create(this);
                     // Add the namespace object to the namespace array, but not update any existing arrays
-                    next.streamsPath = (this.streamsPath) ? this.streamsPath.slice() : [];
+                    next.streamsPath = this.streamsPath.slice();
                     next.streamsPath.push(next);
                 }
                 return next;
@@ -263,7 +263,7 @@
 
         };
 
-        // Add the evntstream object to an index of namespaces
+        // Add the current stream as the first stream in the streams path
         evntstream.streamsPath = [evntstream];
 
         // Handlers
