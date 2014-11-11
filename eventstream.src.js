@@ -36,7 +36,7 @@
     var wrap = function() {
 
         var evntstream,
-            evnts = {},
+            evntNames = {},
             history = [];
 
         var eventFired = function(evnt, from, to) {
@@ -53,71 +53,101 @@
                     e = {id:id},
                     i,
                     j,
-                    evntArray = evnts[id],
-                    evntArrayLength,
+                    k,
+                    evnts = evntNames[id],
+                    evntsLength,
+                    evnt,
                     date,
+                    callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity = 1,
+                    callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams = 1,
+                    callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams = 1,
                     callback;
 
-                // if evnts[id] does not exist do nothing except prime the array
-                if (evntArray === undefined) {
-                    evntArray = evnts[id] = [];
+                // if evntNames[id] does not exist do nothing except prime the array
+                if (evnts === undefined) {
+                    evnts = evntNames[id] = [];
                 }
 
-                evntArrayLength = evntArray.length;
+                evntsLength = evnts.length;
 
-                // Maintain a history log that is made use of in the _when function
+                // Maintain a history log that can be made use of in the _when function
                 date = new Date() * 1;
                 history.push({date:date, o:{id:id, anything:anything, stream:this}});
 
-                if (evntArrayLength) {
 
-                    // Loop through the listeners attached to this event
-                    for (i = 0; i < evntArrayLength; i++) {
+                if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity) {
+                    // Loop through the events
+                    for (i = 0; i < evntsLength; i++) {
 
+                        evnt = evnts[i];
+
+console.log('a', this.streamsPath, evnt.streamsPath);
                         callback = false;
 
-                        if (0 && callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity) {
-                            // Loop over the namespace array
-                            // If any of the namespaces are the current namespace then do the callback
-                            for (j = 0; j < evntArray[i].streamsPath.length; j++) {
-                                if (evntArray[i].streamsPath[j] === this) {
-                                    callback = true;
-                                }
-                            }
-
-                        }
-                        else if (1 || callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams) {
-                            console.log('streamsPath', this.streamsPath);
-                            // Loop through the path of streams from super to sub
-                            for (j = this.streamsPath.length - 1; j > -1; j--) {
-
+                        // Loop over the stream paths
+                        // If any of the stream paths match the current stream then do the callback
+                        for (j = 0; j < evnt.streamsPath.length; j++) {
+                            if (evnt.streamsPath[j].stream === this) {
+                                callback = true;
                             }
                         }
-                        else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams) {
-                            // Loop through the path of streams from sub to super
-                            for (j = 0; j < this.streamsPath.length; j++) {
-                            }
-                        }
-                        // For example
-                        // An event to fired on the root stream:
-                        // if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity)
-                        //      Could mean a midstream callback is called, followed by a substream, then by the root stream, followed by another substream
-                        //      All of which is determined by the order the listeners were added
-                        // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams)
-                        //      Would mean substream callbacks are called (in order the listener were added), followed by midstream, ... and lastly root stream
-                        // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams)
-                        //      Would mean root stream callbacks are called (in order the listener were added), followed by midstream, ... and lastly the most sub substream
-                        // The option is set at the root stream, but can be overridden for any substream, where the substream fires the event
-                        //      If a substream has a different option to root. Then only if the substream (or its substreams) fires will the option be different to the root
-                        //      If the root is fired it will honour the option set at the root stream
 
                         if (callback) {
-                            evntArray[i].callback(e, anything);
+                            evnt.callback(e, anything);
                         }
 
                     }
 
                 }
+
+                else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams) {
+
+console.log('b streamsPath', this.streamsPath);
+
+                    // Loop through the path of streams from super to sub
+                    for (i = this.streamsPath.length - 1; i > -1; i--) {
+
+                        // Loop through the events
+                        for (j = 0; j < evntsLength; j++) {
+
+                            evnt = evnts[j];
+
+                            callback = false;
+
+                            // Loop over the event streams path
+                            // If any of the streams are the current namespace then do the callback
+                            for (k = 0; k < evnt.streamsPath.length; k++) {
+                                if (evnt.streamsPath[k].stream === this.streamsPath[i].stream) {
+                                    callback = true;
+                                }
+                            }
+
+                            if (callback) {
+                                evnt.callback(e, anything);
+                            }
+
+                        }
+
+                    }
+                }
+                else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams) {
+                    // Loop through the path of streams from sub to super
+                    for (j = 0; j < this.streamsPath.length; j++) {
+                    }
+                }
+                // For example
+                // An event to fired on the root stream:
+                // if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity)
+                //      Could mean a midstream callback is called, followed by a substream, then by the root stream, followed by another substream
+                //      All of which is determined by the order the listeners were added
+                // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams)
+                //      Would mean substream callbacks are called (in order the listener were added), followed by midstream, ... and lastly root stream
+                // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams)
+                //      Would mean root stream callbacks are called (in order the listener were added), followed by midstream, ... and lastly the most sub substream
+                // The option is set at the root stream, but can be overridden for any substream, where the substream fires the event
+                //      If a substream has a different option to root. Then only if the substream (or its substreams) fires will the option be different to the root
+                //      If the root is fired it will honour the option set at the root stream
+
 
             },
 
@@ -126,18 +156,18 @@
                 var id = o.id,
                     fn = o.fn,
                     now = o.now,
-                    evntArray,
-                    evntArrayLength,
-                    evntArrayExisted,
+                    evnts,
+                    evntsLength,
+                    evntsExisted,
                     callback,
                     evnt,
                     i;
 
                 now = now === undefined ? false : now;
 
-                evntArrayExisted = evnts[id] !== undefined;
+                evntsExisted = evntNames[id] !== undefined;
 
-                evntArray = evnts[id] = evnts[id] || [];
+                evnts = evntNames[id] = evntNames[id] || [];
 
                 // If the callback fn exists add the handler
                 if (fn) {
@@ -147,9 +177,14 @@
                         streamsPath:this.streamsPath.slice(),
                         created:new Date() * 1
                     };
+
+                    evnts.push(evnt);
+
                     // slice() to make sure a copy of the array is used, not a reference to the original object
                     // Truth table: https://docs.google.com/spreadsheets/d/1yrLzB-RQcm5TArhgmG-g2jQt4VrBK51gkTWet0hA2QU/edit#gid=0
+                    /*
                     if (o.from > o.to) {
+
                         // ? make o.from 0 and o.to infinity, the default
                         // or do nothing, yeah do nothing
                     }
@@ -160,7 +195,7 @@
                             if (o.to >= 0) {
 
                                 // Add the listener
-                                evntArray.push(evnt);
+                                evnts.push(evnt);
 
                                 // Call fn if the event was already fired
                                 if (eventFired(evnt, o.from, o.to)) {
@@ -207,7 +242,7 @@
                                 // After a delay add the listener
                                 setTimeout(function() {
                                     evnt.created = new Date() * 1;
-                                    evntArray.push(evnt);
+                                    evnts.push(evnt);
                                 }, o.from);
 
                                 if (o.to !== Number.POSITIVE_INFINITY) {
@@ -226,25 +261,26 @@
                             }
                         }
                     }
+                    */
                 }
                 // Else remove the event handler
                 else {
 
-                    // if evntArray does not exist do nothing
-                    if (evntArray !== undefined) {
+                    // if evnts does not exist do nothing
+                    if (evnts !== undefined) {
 
-                        evntArrayLength = evntArray.length;
+                        evntsLength = evnts.length;
 
-                        for (i = evntArrayLength - 1; i > -1; i--) {
+                        for (i = evntsLength - 1; i > -1; i--) {
 
                             // Check if the namespace is ok
                             callback = false;
 
-                            if (evntArray[i].streamsPath[evntArray[i].streamsPath.length - 1] === this) {
+                            if (evnts[i].streamsPath[evnts[i].streamsPath.length - 1].stream === this) {
                                 callback = true;
                             }
                             if (callback) {
-                                evntArray.splice(i, 1);
+                                evnts.splice(i, 1);
                             }
 
                         }
@@ -253,17 +289,24 @@
 
                 }
             },
-            new: function(createNewBaseStream) {
+            new: function(a,b) {
                 // May add ability to label a stream for later retrieval
-                var next;
-                if (createNewBaseStream === true) {
+                var next,
+                    label;
+
+                if (typeOf(a) === 'string') {
+                    label = a;
+                    a = b;
+                }
+
+                if (a === true) {
                     next = wrap();
                 }
                 else {
                     // Create the next substream, and add it to a copy of the current path of streams
                     next = Object.create(this);
                     next.streamsPath = this.streamsPath.slice();
-                    next.streamsPath.push(next);
+                    next.streamsPath.push({stream:next, label:label});
                 }
                 return next;
             }
@@ -272,7 +315,7 @@
         };
 
         // Add the current stream as the first node in the path of streams
-        evntstream.streamsPath = [evntstream];
+        evntstream.streamsPath = [{stream:evntstream, label:'root'}];
 
         // Handlers
         evntstream.if = evntstream.on = evntstream.off = evntstream.when = function(a,b,c,d,e) {
@@ -313,10 +356,11 @@
 
     // A wee bit of testing
     var a = context.evntstream;
-    var b = a.new();
-    var c = b.new();
-    var bb = a.new();
-    var z = c.new(true);
+    var b = a.new('b');
+    var c = b.new('c');
+    var bb = a.new('bb');
+    var z = c.new('z',true);
+/*
     console.log(context.evntstream);
     console.log(a);
     console.log(b);
@@ -331,12 +375,6 @@
     //a.if('the door opens', 5000, function(e, data) {
     //    console.log('door opened ns a, ', data);
     //});
-    a.when('the door opens', function(e, data) {
-        console.log('door opened ns a, ', data);
-    });
-    a.when('the door opens', function(e, data) {
-        console.log('door opened ns a2, ', data);
-    });
     b.when('the door opens', function(e, data) {
         console.log('door opened ns b, ', data);
     });
@@ -345,6 +383,12 @@
     });
     z.when('the door opens', function(e, data) {
         console.log('door opened ns z, ', data);
+    });
+    a.when('the door opens', function(e, data) {
+        console.log('door opened ns a, ', data);
+    });
+    a.when('the door opens', function(e, data) {
+        console.log('door opened ns a2, ', data);
     });
 
     a.call('the door opens', 'a made the call'); // Should fire
@@ -360,14 +404,27 @@
     a.when('the door is opened', doNothing);
     a.on('the door being opened', doNothing);
     a.call('the door being opened', doNothing);
+*/
 
-var fn = function() {
-    console.log('fn');
-};
-var fall = function() {
-    console.log('fall');
-};
-    a.when('bob',fn);
+    a.on('bob', function() {console.log('a1');});
+    c.on('bob', function() {console.log('c2');});
+    b.on('bob', function() {console.log('b3');});
+    a.on('bob', function() {console.log('a4');});
+    b.on('bob', function() {console.log('b5');});
+    a.on('bob', function() {console.log('a6');});
+    b.call('bob');
+// a.call by default fires a, b, c in order each event was added
+// b.call by default fires b, c in order each event was added
+// c.call by default fires c in order each event was added
+
+
+//var fn = function() {
+//    console.log('fn');
+//};
+//var fall = function() {
+//    console.log('fall');
+//};
+//a.when('bob',fn);
     //a.when('bob',5000,fn,fall); // keep handler in place for 5 seconds
     //a.when('bob',-5000,fn,fall); // keep handler in place for 5 seconds
     //a.when('bob',-8,8,fn,fall);
