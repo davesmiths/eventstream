@@ -35,8 +35,8 @@
 
     var wrap = function() {
 
-        var evntstream,
-            evntNames = {},
+        var eventStream,
+            eventNames = {},
             history = [];
 
         var eventFired = function(evnt, from, to) {
@@ -44,7 +44,7 @@
             //history = {date, o:{id,anything,stream}}
             //evnt = {callback, streamsPath[], created}
         };
-        evntstream = {
+        eventStream = {
 
             _call: function(o) {
 
@@ -54,8 +54,8 @@
                     i,
                     j,
                     k,
-                    evnts = evntNames[id],
-                    evntsLength,
+                    events = eventNames[id],
+                    eventsLength,
                     evnt,
                     date,
                     callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity = 1,
@@ -63,12 +63,12 @@
                     callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams = 1,
                     callback;
 
-                // if evntNames[id] does not exist do nothing except prime the array
-                if (evnts === undefined) {
-                    evnts = evntNames[id] = [];
+                // if eventNames[id] does not exist do nothing except prime the array
+                if (events === undefined) {
+                    events = eventNames[id] = [];
                 }
 
-                evntsLength = evnts.length;
+                eventsLength = events.length;
 
                 // Maintain a history log that can be made use of in the _when function
                 date = new Date() * 1;
@@ -77,9 +77,9 @@
 
                 if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity) {
                     // Loop through the events
-                    for (i = 0; i < evntsLength; i++) {
+                    for (i = 0; i < eventsLength; i++) {
 
-                        evnt = evnts[i];
+                        evnt = events[i];
 
 console.log('a', this.streamsPath, evnt.streamsPath);
                         callback = false;
@@ -108,9 +108,9 @@ console.log('b streamsPath', this.streamsPath);
                     for (i = this.streamsPath.length - 1; i > -1; i--) {
 
                         // Loop through the events
-                        for (j = 0; j < evntsLength; j++) {
+                        for (j = 0; j < eventsLength; j++) {
 
-                            evnt = evnts[j];
+                            evnt = events[j];
 
                             callback = false;
 
@@ -156,18 +156,18 @@ console.log('b streamsPath', this.streamsPath);
                 var id = o.id,
                     fn = o.fn,
                     now = o.now,
-                    evnts,
-                    evntsLength,
-                    evntsExisted,
+                    events,
+                    eventsLength,
+                    eventsExisted,
                     callback,
                     evnt,
                     i;
 
                 now = now === undefined ? false : now;
 
-                evntsExisted = evntNames[id] !== undefined;
+                eventsExisted = eventNames[id] !== undefined;
 
-                evnts = evntNames[id] = evntNames[id] || [];
+                events = eventNames[id] = eventNames[id] || [];
 
                 // If the callback fn exists add the handler
                 if (fn) {
@@ -178,7 +178,7 @@ console.log('b streamsPath', this.streamsPath);
                         created:new Date() * 1
                     };
 
-                    evnts.push(evnt);
+                    events.push(evnt);
 
                     // slice() to make sure a copy of the array is used, not a reference to the original object
                     // Truth table: https://docs.google.com/spreadsheets/d/1yrLzB-RQcm5TArhgmG-g2jQt4VrBK51gkTWet0hA2QU/edit#gid=0
@@ -195,7 +195,7 @@ console.log('b streamsPath', this.streamsPath);
                             if (o.to >= 0) {
 
                                 // Add the listener
-                                evnts.push(evnt);
+                                events.push(evnt);
 
                                 // Call fn if the event was already fired
                                 if (eventFired(evnt, o.from, o.to)) {
@@ -242,7 +242,7 @@ console.log('b streamsPath', this.streamsPath);
                                 // After a delay add the listener
                                 setTimeout(function() {
                                     evnt.created = new Date() * 1;
-                                    evnts.push(evnt);
+                                    events.push(evnt);
                                 }, o.from);
 
                                 if (o.to !== Number.POSITIVE_INFINITY) {
@@ -266,21 +266,21 @@ console.log('b streamsPath', this.streamsPath);
                 // Else remove the event handler
                 else {
 
-                    // if evnts does not exist do nothing
-                    if (evnts !== undefined) {
+                    // if events does not exist do nothing
+                    if (events !== undefined) {
 
-                        evntsLength = evnts.length;
+                        eventsLength = events.length;
 
-                        for (i = evntsLength - 1; i > -1; i--) {
+                        for (i = eventsLength - 1; i > -1; i--) {
 
                             // Check if the namespace is ok
                             callback = false;
 
-                            if (evnts[i].streamsPath[evnts[i].streamsPath.length - 1].stream === this) {
+                            if (events[i].streamsPath[events[i].streamsPath.length - 1].stream === this) {
                                 callback = true;
                             }
                             if (callback) {
-                                evnts.splice(i, 1);
+                                events.splice(i, 1);
                             }
 
                         }
@@ -315,10 +315,10 @@ console.log('b streamsPath', this.streamsPath);
         };
 
         // Add the current stream as the first node in the path of streams
-        evntstream.streamsPath = [{stream:evntstream, label:'root'}];
+        eventStream.streamsPath = [{stream:eventStream, label:'root'}];
 
         // Handlers
-        evntstream.if = evntstream.on = evntstream.off = evntstream.when = function(a,b,c,d,e) {
+        eventStream.if = eventStream.on = eventStream.off = eventStream.when = function(a,b,c,d,e) {
             var o = {id:a,to:Number.POSITIVE_INFINITY,from:0,fn:doNothing,fall:doNothing};
             if (typeOf(b) === 'boolean') {
                 b = b ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
@@ -336,32 +336,41 @@ console.log('b streamsPath', this.streamsPath);
             }
             o.fn = b;
             o.fall = c;
-            evntstream._when(o);
+            eventStream._when(o);
         };
 
         // Triggers
-        evntstream.do = evntstream.trigger = evntstream.call = function(id, anything) {
-            evntstream._call({
+        eventStream.do = eventStream.trigger = eventStream.call = function(id, anything) {
+            eventStream._call({
                 id:id,
                 anything:anything
             });
         };
 
-        return evntstream;
+        return eventStream;
 
     };
 
-    context.evntstream = wrap();
+    context.eventStream = wrap();
 
+//             c--
+//            /
+//       b--------
+//      /
+// -a-------------
+//      \
+//       bb-------
+//
+// -z-------------
 
     // A wee bit of testing
-    var a = context.evntstream;
+    var a = context.eventStream;
     var b = a.new('b');
     var c = b.new('c');
     var bb = a.new('bb');
     var z = c.new('z',true);
 /*
-    console.log(context.evntstream);
+    console.log(context.eventStream);
     console.log(a);
     console.log(b);
     console.log(c);
