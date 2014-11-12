@@ -44,6 +44,7 @@
             //history = {date, o:{id,anything,stream}}
             //evnt = {callback, streamsPath[], created}
         };
+
         eventStream = {
 
             _call: function(o) {
@@ -58,9 +59,9 @@
                     eventsLength,
                     evnt,
                     date,
-                    callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity = 1,
-                    callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams = 1,
-                    callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams = 1,
+                    propagate = 1,
+                    propagateType = 0,
+                    propagateOK,
                     callback;
 
                 // if eventNames[id] does not exist do nothing except prime the array
@@ -75,79 +76,93 @@
                 history.push({date:date, o:{id:id, anything:anything, stream:this}});
 
 
-                if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity) {
-                    // Loop through the events
-                    for (i = 0; i < eventsLength; i++) {
+//                if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity) {
+//
+//                    // Loop through the events
+//                    for (i = 0; i < eventsLength; i++) {
+//
+//                        evnt = events[i];
+//
+//console.log('a', this.streamsPath, evnt.streamsPath);
+//                        callback = false;
+//
+//                        // Loop over the stream paths
+//                        // If any of the stream paths match the current stream then do the callback
+//                        for (j = 0; j < evnt.streamsPath.length; j++) {
+//                            if (evnt.streamsPath[j].stream === this) {
+//                                callback = true;
+//                            }
+//                        }
+//
+//                        if (callback) {
+//                            evnt.callback(e, anything);
+//                        }
+//
+//                    }
+//
+//                }
 
-                        evnt = events[i];
+                if (propagate) {
 
-console.log('a', this.streamsPath, evnt.streamsPath);
-                        callback = false;
+                    // Down stream
+                    if (propagateType === 0) {
 
-                        // Loop over the stream paths
-                        // If any of the stream paths match the current stream then do the callback
-                        for (j = 0; j < evnt.streamsPath.length; j++) {
-                            if (evnt.streamsPath[j].stream === this) {
-                                callback = true;
+    console.log('b streamsPath', this.streamsPath);
+
+                        propagateOK = false;
+
+                        // Loop through the path of streams from super to sub
+                        for (i = this.streamsPath.length - 1; i > -1; i--) {
+
+console.log('yes', this, this.streamsPath[i].stream);
+                            if (this.streamsPath[i].stream === this) {
+                                propagateOK = true;
                             }
-                        }
 
-                        if (callback) {
-                            evnt.callback(e, anything);
-                        }
+                            if (propagateOK) {
 
-                    }
+                                // Loop through the events
+                                for (j = 0; j < eventsLength; j++) {
 
-                }
+                                    evnt = events[j];
 
-                else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams) {
+                                    callback = false;
 
-console.log('b streamsPath', this.streamsPath);
+                                    // Loop over the event streams path
+                                    // If any of the streams are the current namespace then do the callback
+                                    for (k = 0; k < evnt.streamsPath.length; k++) {
+                                        if (evnt.streamsPath[k].stream === this.streamsPath[i].stream) {
+                                            callback = true;
+                                        }
+                                    }
 
-                    // Loop through the path of streams from super to sub
-                    for (i = this.streamsPath.length - 1; i > -1; i--) {
+                                    if (callback) {
+                                        evnt.callback(e, anything);
+                                    }
 
-                        // Loop through the events
-                        for (j = 0; j < eventsLength; j++) {
-
-                            evnt = events[j];
-
-                            callback = false;
-
-                            // Loop over the event streams path
-                            // If any of the streams are the current namespace then do the callback
-                            for (k = 0; k < evnt.streamsPath.length; k++) {
-                                if (evnt.streamsPath[k].stream === this.streamsPath[i].stream) {
-                                    callback = true;
                                 }
                             }
 
-                            if (callback) {
-                                evnt.callback(e, anything);
-                            }
-
                         }
-
                     }
-                }
-                else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams) {
-                    // Loop through the path of streams from sub to super
-                    for (j = 0; j < this.streamsPath.length; j++) {
+                    else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams) {
+                        // Loop through the path of streams from sub to super
+                        for (j = 0; j < this.streamsPath.length; j++) {
+                        }
                     }
+                    // For example
+                    // An event to fired on the root stream:
+                    // if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity)
+                    //      Could mean a midstream callback is called, followed by a substream, then by the root stream, followed by another substream
+                    //      All of which is determined by the order the listeners were added
+                    // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams)
+                    //      Would mean substream callbacks are called (in order the listener were added), followed by midstream, ... and lastly root stream
+                    // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams)
+                    //      Would mean root stream callbacks are called (in order the listener were added), followed by midstream, ... and lastly the most sub substream
+                    // The option is set at the root stream, but can be overridden for any substream, where the substream fires the event
+                    //      If a substream has a different option to root. Then only if the substream (or its substreams) fires will the option be different to the root
+                    //      If the root is fired it will honour the option set at the root stream
                 }
-                // For example
-                // An event to fired on the root stream:
-                // if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity)
-                //      Could mean a midstream callback is called, followed by a substream, then by the root stream, followed by another substream
-                //      All of which is determined by the order the listeners were added
-                // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams)
-                //      Would mean substream callbacks are called (in order the listener were added), followed by midstream, ... and lastly root stream
-                // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams)
-                //      Would mean root stream callbacks are called (in order the listener were added), followed by midstream, ... and lastly the most sub substream
-                // The option is set at the root stream, but can be overridden for any substream, where the substream fires the event
-                //      If a substream has a different option to root. Then only if the substream (or its substreams) fires will the option be different to the root
-                //      If the root is fired it will honour the option set at the root stream
-
 
             },
 
@@ -290,7 +305,7 @@ console.log('b streamsPath', this.streamsPath);
                 }
             },
             new: function(a,b) {
-                // May add ability to label a stream for later retrieval
+
                 var next,
                     label;
 
@@ -303,11 +318,13 @@ console.log('b streamsPath', this.streamsPath);
                     next = wrap();
                 }
                 else {
+console.log('====',this, label);
                     // Create the next substream, and add it to a copy of the current path of streams
                     next = Object.create(this);
                     next.streamsPath = this.streamsPath.slice();
                     next.streamsPath.push({stream:next, label:label});
                 }
+                next.label = label;
                 return next;
             }
 
@@ -347,6 +364,8 @@ console.log('b streamsPath', this.streamsPath);
             });
         };
 
+        eventStream.label = 'root';
+
         return eventStream;
 
     };
@@ -355,13 +374,26 @@ console.log('b streamsPath', this.streamsPath);
 
 //             c--
 //            /
-//       b--------
+//       b----
 //      /
-// -a-------------
+// -a---
 //      \
 //       bb-------
 //
 // -z-------------
+
+
+//  if b fired
+//      default, down stream
+//          handlers for b and c called
+//      up stream
+//          handlers for b and a called
+//
+//  e.stopPropagation prevents down or up stream propagation
+//  e.stopImmediatePropagation prevents any other same stream handers firing and stops down or up stream propagation
+//
+//
+
 
     // A wee bit of testing
     var a = context.eventStream;
@@ -369,7 +401,9 @@ console.log('b streamsPath', this.streamsPath);
     var c = b.new('c');
     var bb = a.new('bb');
     var z = c.new('z',true);
+
 /*
+
     console.log(context.eventStream);
     console.log(a);
     console.log(b);
@@ -413,6 +447,7 @@ console.log('b streamsPath', this.streamsPath);
     a.when('the door is opened', doNothing);
     a.on('the door being opened', doNothing);
     a.call('the door being opened', doNothing);
+
 */
 
     a.on('bob', function() {console.log('a1');});
@@ -422,6 +457,8 @@ console.log('b streamsPath', this.streamsPath);
     b.on('bob', function() {console.log('b5');});
     a.on('bob', function() {console.log('a6');});
     b.call('bob');
+    c.call('bob');
+console.log(a,b,c,z);
 // a.call by default fires a, b, c in order each event was added
 // b.call by default fires b, c in order each event was added
 // c.call by default fires c in order each event was added
