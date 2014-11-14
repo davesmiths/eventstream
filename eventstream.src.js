@@ -1,5 +1,5 @@
 // Custom events
-(function(context, undefined) {
+(function(context, undef) {
 
     'use strict';
 
@@ -27,19 +27,23 @@
         };
     }
 
-    var typeOf = function(o) {
-            return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-        },
-        doNothing = function() {};
+    var typeOf,
+        doNothing = function() {},
+        wrap;
+
+    typeOf = function(o) {
+        return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+    };
 
 
-    var wrap = function() {
+    wrap = function() {
 
         var eventStream,
             eventNames = {},
-            history = [];
+            history = [],
+            eventFired;
 
-        var eventFired = function(evnt, from, to) {
+        eventFired = function(evnt, from, to) {
             console.log('eventFired',evnt, history);
             //history = {date, o:{id,anything,stream}}
             //evnt = {callback, streamsPath[], created}
@@ -54,20 +58,17 @@ console.log('_call',this);
                 var id = o.id,
                     anything = o.anything,
                     e = {id:id},
-                    i,
-                    j,
-                    k,
                     events = eventNames[id],
                     eventsLength,
                     evnt,
                     date,
                     propagate = 1,
                     propagateType = 0,
-                    propagateOK,
-                    callback;
+                    upDownStreamProp,
+                    thing;
 
                 // if eventNames[id] does not exist do nothing except prime the array
-                if (events === undefined) {
+                if (events === undef) {
                     events = eventNames[id] = [];
                 }
 
@@ -77,100 +78,34 @@ console.log('_call',this);
                 date = new Date() * 1;
                 history.push({date:date, o:{id:id, anything:anything, stream:this}});
 
+                // Do propagation
+                upDownStreamProp = propagateType === 0 ? 'downStream' : 'upStream';
 
-//                if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity) {
-//
-//                    // Loop through the events
-//                    for (i = 0; i < eventsLength; i++) {
-//
-//                        evnt = events[i];
-//
-//console.log('a', this.streamsPath, evnt.streamsPath);
-//                        callback = false;
-//
-//                        // Loop over the stream paths
-//                        // If any of the stream paths match the current stream then do the callback
-//                        for (j = 0; j < evnt.streamsPath.length; j++) {
-//                            if (evnt.streamsPath[j].stream === this) {
-//                                callback = true;
-//                            }
-//                        }
-//
-//                        if (callback) {
-//                            evnt.callback(e, anything);
-//                        }
-//
-//                    }
-//
-//                }
+                thing = function(callStream) {
 
-                if (propagate) {
+                    var callUpDownStream = callStream[upDownStreamProp],
+                        callUpDownStreamLength = callUpDownStream.length,
+                        i;
 
-                    // Down stream
-                    if (propagateType === 0) {
+                    // Loop through the events
+                    for (i = 0; i < eventsLength; i++) {
 
-//console.log('b streamsPath', this.streamsPath);
+                        evnt = events[i];
 
-                        propagateOK = false;
+                        if (evnt.stream === callStream) {
+                            evnt.callback(e, anything);
+                        }
 
-                        // Loop through the path of streams from super to sub
-                        //for (i = this.streamsPath.length - 1; i > -1; i--) {
-                        for (i = 0; i < this.streamsPath.length; i++) {
+                    }
 
-console.log('yes this', i, this);
-console.log('yes path stream', i, this.streamsPath[i].stream);
-
-                            if (this.streamsPath[i].stream === this) {
-                                propagateOK = true;
-                            }
-
-                            if (propagateOK) {
-
-                                // Loop through the events
-                                for (j = 0; j < eventsLength; j++) {
-
-                                    evnt = events[j];
-
-                                    callback = false;
-console.log('evnt streamspath', evnt.streamsPath);
-                                    // Loop over the event streams path
-                                    // If any of the streams are the current namespace then do the callback
-                                    //for (k = 0; k < evnt.streamsPath.length; k++) {
-                                    //    if (evnt.streamsPath[k].stream === this.streamsPath[i].stream) {
-                                    //        callback = true;
-                                    //    }
-                                    //}
-                                    if (evnt.streamsPath[evnt.streamsPath.length - 1].stream === this.streamsPath[i].stream) {
-                                        callback = true;
-                                    }
-
-                                    if (callback) {
-                                        evnt.callback(e, anything);
-                                    }
-
-                                }
-                            }
-
+                    if (propagate) {
+                        for (i = 0; i < callUpDownStreamLength; i++) {
+                            thing(callUpDownStream[i]);
                         }
                     }
-                    else if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams) {
-                        // Loop through the path of streams from sub to super
-                        for (j = 0; j < this.streamsPath.length; j++) {
-                        }
-                    }
-                    // For example
-                    // An event to fired on the root stream:
-                    // if (callbacksAreCalledChonologicallyWithNoHierarchicalSensitivity)
-                    //      Could mean a midstream callback is called, followed by a substream, then by the root stream, followed by another substream
-                    //      All of which is determined by the order the listeners were added
-                    // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSubToSuperStreams)
-                    //      Would mean substream callbacks are called (in order the listener were added), followed by midstream, ... and lastly root stream
-                    // if (callbacksAreCalledChronologicallyWithinTheScopeOfEachStreamGoingFromSuperToSubStreams)
-                    //      Would mean root stream callbacks are called (in order the listener were added), followed by midstream, ... and lastly the most sub substream
-                    // The option is set at the root stream, but can be overridden for any substream, where the substream fires the event
-                    //      If a substream has a different option to root. Then only if the substream (or its substreams) fires will the option be different to the root
-                    //      If the root is fired it will honour the option set at the root stream
-                }
+
+                };
+                thing(this);
 
             },
 
@@ -186,9 +121,9 @@ console.log('_when',this);
                     evnt,
                     i;
 
-                now = now === undefined ? false : now;
+                now = now === undef ? false : now;
 
-                eventsExisted = eventNames[id] !== undefined;
+                eventsExisted = eventNames[id] !== undef;
 
                 events = eventNames[id] = eventNames[id] || [];
 
@@ -197,7 +132,7 @@ console.log('_when',this);
 
                     evnt = {
                         callback:fn,
-                        streamsPath:this.streamsPath.slice(),
+                        stream:this,
                         created:new Date() * 1
                     };
 
@@ -290,7 +225,7 @@ console.log('_when',this);
                 else {
 
                     // if events does not exist do nothing
-                    if (events !== undefined) {
+                    if (events !== undef) {
 
                         eventsLength = events.length;
 
@@ -328,28 +263,21 @@ console.log('_when',this);
                 else {
                     // Create the next substream, and add it to a copy of the current path of streams
                     next = Object.create(this);
-                    //next = {};
-                    next.streamsPath = this.streamsPath.slice();
-                    next.streamsPath.push({stream:next, label:label});
-                    //next._call = this._call;
-                    //next._when = this._when;
-                    //next._when = function(){console.log('next.on',this);};
-                    //next.on = function(){console.log('next.on',this);};
-                    //next.on = this.on;
-                    //next.call = this.call;
-                    //next.new = this.new;
+                    next.upStream = [this];
+                    next.downStream = [];
+                    this.downStream.push(next);
                 }
                 next.label = label;
-console.log('==new=this=',this);
-console.log('==new=next=',next);
-                return next;
-            }
 
+                return next;
+
+            }
 
         };
 
-        // Add the current stream as the first node in the path of streams
-        eventStream.streamsPath = [{stream:eventStream, label:'root'}];
+        // Add up and down stream arrays to capture the immediate super and sub streams
+        eventStream.upStream = [];
+        eventStream.downStream = [];
 
         // Handlers
         eventStream.if = eventStream.on = eventStream.off = eventStream.when = function(a,b,c,d,e) {
@@ -475,7 +403,7 @@ console.log('==new=next=',next);
     b.on('bob', function() {console.log('b5');});
     a.on('bob', function() {console.log('a6');});
     //b.call('bob');
-    b.call('bob');
+    c.call('bob');
 console.log(a);
 console.log(b);
 console.log(c);
