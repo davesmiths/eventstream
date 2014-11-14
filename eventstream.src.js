@@ -49,6 +49,8 @@
 
             _call: function(o) {
 
+console.log('_call',this);
+
                 var id = o.id,
                     anything = o.anything,
                     e = {id:id},
@@ -107,14 +109,17 @@
                     // Down stream
                     if (propagateType === 0) {
 
-    console.log('b streamsPath', this.streamsPath);
+//console.log('b streamsPath', this.streamsPath);
 
                         propagateOK = false;
 
                         // Loop through the path of streams from super to sub
-                        for (i = this.streamsPath.length - 1; i > -1; i--) {
+                        //for (i = this.streamsPath.length - 1; i > -1; i--) {
+                        for (i = 0; i < this.streamsPath.length; i++) {
 
-console.log('yes', this, this.streamsPath[i].stream);
+console.log('yes this', i, this);
+console.log('yes path stream', i, this.streamsPath[i].stream);
+
                             if (this.streamsPath[i].stream === this) {
                                 propagateOK = true;
                             }
@@ -127,13 +132,16 @@ console.log('yes', this, this.streamsPath[i].stream);
                                     evnt = events[j];
 
                                     callback = false;
-
+console.log('evnt streamspath', evnt.streamsPath);
                                     // Loop over the event streams path
                                     // If any of the streams are the current namespace then do the callback
-                                    for (k = 0; k < evnt.streamsPath.length; k++) {
-                                        if (evnt.streamsPath[k].stream === this.streamsPath[i].stream) {
-                                            callback = true;
-                                        }
+                                    //for (k = 0; k < evnt.streamsPath.length; k++) {
+                                    //    if (evnt.streamsPath[k].stream === this.streamsPath[i].stream) {
+                                    //        callback = true;
+                                    //    }
+                                    //}
+                                    if (evnt.streamsPath[evnt.streamsPath.length - 1].stream === this.streamsPath[i].stream) {
+                                        callback = true;
                                     }
 
                                     if (callback) {
@@ -167,7 +175,7 @@ console.log('yes', this, this.streamsPath[i].stream);
             },
 
             _when: function(o) {
-
+console.log('_when',this);
                 var id = o.id,
                     fn = o.fn,
                     now = o.now,
@@ -318,13 +326,22 @@ console.log('yes', this, this.streamsPath[i].stream);
                     next = wrap();
                 }
                 else {
-console.log('====',this, label);
                     // Create the next substream, and add it to a copy of the current path of streams
                     next = Object.create(this);
+                    //next = {};
                     next.streamsPath = this.streamsPath.slice();
                     next.streamsPath.push({stream:next, label:label});
+                    //next._call = this._call;
+                    //next._when = this._when;
+                    //next._when = function(){console.log('next.on',this);};
+                    //next.on = function(){console.log('next.on',this);};
+                    //next.on = this.on;
+                    //next.call = this.call;
+                    //next.new = this.new;
                 }
                 next.label = label;
+console.log('==new=this=',this);
+console.log('==new=next=',next);
                 return next;
             }
 
@@ -353,12 +370,12 @@ console.log('====',this, label);
             }
             o.fn = b;
             o.fall = c;
-            eventStream._when(o);
+            this._when(o);
         };
 
         // Triggers
         eventStream.do = eventStream.trigger = eventStream.call = function(id, anything) {
-            eventStream._call({
+            this._call({
                 id:id,
                 anything:anything
             });
@@ -372,6 +389,7 @@ console.log('====',this, label);
 
     context.eventStream = wrap();
 
+}(this));
 //             c--
 //            /
 //       b----
@@ -396,7 +414,7 @@ console.log('====',this, label);
 
 
     // A wee bit of testing
-    var a = context.eventStream;
+    var a = eventStream;
     var b = a.new('b');
     var c = b.new('c');
     var bb = a.new('bb');
@@ -456,9 +474,12 @@ console.log('====',this, label);
     a.on('bob', function() {console.log('a4');});
     b.on('bob', function() {console.log('b5');});
     a.on('bob', function() {console.log('a6');});
+    //b.call('bob');
     b.call('bob');
-    c.call('bob');
-console.log(a,b,c,z);
+console.log(a);
+console.log(b);
+console.log(c);
+console.log(z);
 // a.call by default fires a, b, c in order each event was added
 // b.call by default fires b, c in order each event was added
 // c.call by default fires c in order each event was added
@@ -500,8 +521,6 @@ console.log(a,b,c,z);
 
 
 
-
-}(this));
 
 /*
 
