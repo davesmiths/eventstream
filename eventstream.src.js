@@ -117,7 +117,6 @@ console.log('_when',this);
                     events,
                     eventsLength,
                     eventsExisted,
-                    callback,
                     evnt,
                     i;
 
@@ -227,17 +226,9 @@ console.log('_when',this);
                     // if events does not exist do nothing
                     if (events !== undef) {
 
-                        eventsLength = events.length;
+                        for (i = events.length - 1; i > -1; i--) {
 
-                        for (i = eventsLength - 1; i > -1; i--) {
-
-                            // Check if the namespace is ok
-                            callback = false;
-
-                            if (events[i].streamsPath[events[i].streamsPath.length - 1].stream === this) {
-                                callback = true;
-                            }
-                            if (callback) {
+                            if (events[i].stream === this) {
                                 events.splice(i, 1);
                             }
 
@@ -348,6 +339,24 @@ console.log('_when',this);
     var bb = a.new('bb');
     var z = c.new('z',true);
 
+    a.on('bob', function() {console.log('a1');});
+    c.on('bob', function() {console.log('c2');});
+    b.on('bob', function() {console.log('b3');});
+    a.on('bob', function() {console.log('a4');});
+    b.on('bob', function() {console.log('b5');});
+    a.on('bob', function() {console.log('a6');});
+    c.on('bob');
+    //b.call('bob');
+    a.call('bob');
+console.log(a);
+console.log(b);
+console.log(c);
+console.log(z);
+// a.call by default fires a, b, c in order each event was added
+// b.call by default fires b, c in order each event was added
+// c.call by default fires c in order each event was added
+
+
 /*
 
     console.log(context.eventStream);
@@ -396,22 +405,6 @@ console.log('_when',this);
 
 */
 
-    a.on('bob', function() {console.log('a1');});
-    c.on('bob', function() {console.log('c2');});
-    b.on('bob', function() {console.log('b3');});
-    a.on('bob', function() {console.log('a4');});
-    b.on('bob', function() {console.log('b5');});
-    a.on('bob', function() {console.log('a6');});
-    //b.call('bob');
-    c.call('bob');
-console.log(a);
-console.log(b);
-console.log(c);
-console.log(z);
-// a.call by default fires a, b, c in order each event was added
-// b.call by default fires b, c in order each event was added
-// c.call by default fires c in order each event was added
-
 
 //var fn = function() {
 //    console.log('fn');
@@ -446,60 +439,3 @@ console.log(z);
     //// is fired
     //es.if('ajax loaded', function() {
     //});
-
-
-
-
-/*
-
-
-
-
-
-
-
-Add
-    js.when('bob opens the door', 'do this')
-    js.on('bob opens the door', 'do this')
-
-Clear
-    js.when('bob opens the door', 'do nothing')
-    js.when('bob opens the door', null|0|false|undefined)
-
-Trigger
-    js.do('bob opens the door', 'he's wearing green!');
-
-
-Namespaced
-
-Add
-    js('sue').when('bob opens the door', 'do this')
-    js('imagefill').when('bob opens the door', doNothing)
-
-Clear
-    js('sue').when('bob opens the door', 'do nothing')
-    js('harry').when('bob opens the door', null|0|false|undefined)
-    js('imagefill').when('bob opens the door')
-
-Trigger
-    js('sue').do('bob opens the door', 'he's wearing green!');
-
-
-
-
-js.bob => 1;
-js('sue')
-
-
-'bob opens the door'
-    all handlers are fired
-sue('bob opens the door')
-    sue handlers are fired and all sub-sue handlers
-
-
-
-
-
-
-
-*/
