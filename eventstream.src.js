@@ -57,13 +57,12 @@ console.log('_call',this);
 
                 var id = o.id,
                     anything = o.anything,
+                    propagate = o.propagate,
                     e = {id:id},
                     events = eventNames[id],
                     eventsLength,
                     evnt,
                     date,
-                    propagate = 1,
-                    propagateType = 0,
                     upDownStreamProp,
                     thing;
 
@@ -79,12 +78,14 @@ console.log('_call',this);
                 history.push({date:date, o:{id:id, anything:anything, stream:this}});
 
                 // Do propagation
-                upDownStreamProp = propagateType === 0 ? 'downStream' : 'upStream';
+                if (propagate !== 0) {
+                    upDownStreamProp = propagate === -1 ? 'downStream' : 'upStream';
+                }
 
                 thing = function(callStream) {
 
-                    var callUpDownStream = callStream[upDownStreamProp],
-                        callUpDownStreamLength = callUpDownStream.length,
+                    var callUpDownStream,
+                        callUpDownStreamLength,
                         i;
 
                     // Loop through the events
@@ -98,7 +99,9 @@ console.log('_call',this);
 
                     }
 
-                    if (propagate) {
+                    if (propagate !== 0) {
+                        callUpDownStream = callStream[upDownStreamProp];
+                        callUpDownStreamLength = callUpDownStream.length;
                         for (i = 0; i < callUpDownStreamLength; i++) {
                             thing(callUpDownStream[i]);
                         }
@@ -293,11 +296,17 @@ console.log('_when',this);
         };
 
         // Triggers
-        eventStream.do = eventStream.trigger = eventStream.call = function(id, anything) {
-            this._call({
-                id:id,
-                anything:anything
-            });
+        // propagate upstream
+        // propagate downstream
+        // propagate stream only
+        eventStream.do = eventStream.trigger = eventStream.call = function(a,b,c) {
+            var o = {id:a, anything:b, propagate:-1};
+            if (typeOf(a) === 'number') {
+                o.propagate = a;
+                o.id = b;
+                o.anything = c;
+            }
+            this._call(o);
         };
 
         eventStream.label = 'root';
@@ -345,9 +354,9 @@ console.log('_when',this);
     a.on('bob', function() {console.log('a4');});
     b.on('bob', function() {console.log('b5');});
     a.on('bob', function() {console.log('a6');});
-    c.on('bob');
+    //c.on('bob');
     //b.call('bob');
-    a.call('bob');
+    b.call(-1, 'bob');
 console.log(a);
 console.log(b);
 console.log(c);
