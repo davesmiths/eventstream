@@ -41,33 +41,28 @@
         var eventStream,
             eventNames = {},
             history = [],
-            eventFired;
+            hasEventFired;
 
-        eventFired = function(evnt, from, to) {
-console.log('eventFired',evnt, history);
+        hasEventFired = function(evnt, from, to) {
+console.log('hasEventFired',evnt, history);
             //history = [{date, id,anything,stream}]
             //evnt = {callback, stream, created, fall}
             var upperBound = evnt.created + to,
                 lowerBound = evnt.created - from,
-                callback = false,
+                eventFired = false,
                 i;
             for (i = history.length - 1; i > -1; i--) {
+console.log('history[i]',history[i]);
                 if (history[i].date >= lowerBound && history[i].date <= upperBound) {
-                    callback = true;
+                    eventFired = true;
                     break;
                 }
-            }
-            if (callback) {
-                evnt.callback();
-            }
-            else {
-                evnt.fall();
             }
             //event created at 3000
             //eventfired at 8000
             //if eventfired between eventcreated-from and eventcreated+to then call callback
             //else fall
-
+            return eventFired;
         };
 
         eventStream = {
@@ -97,6 +92,7 @@ console.log('_call',this);
                 // Maintain a history log that can be made use of in the _when function
                 date = new Date() * 1;
                 history.push({date:date, id:id, anything:anything, stream:this});
+console.log('history',history);
 
                 // Do propagation
                 if (propagate !== 0) {
@@ -160,89 +156,97 @@ console.log('_when',this);
                         fall:o.fall || doNothing
                     };
 
-                    events.push(evnt);
 
-                    // slice() to make sure a copy of the array is used, not a reference to the original object
-                    // Truth table: https://docs.google.com/spreadsheets/d/1yrLzB-RQcm5TArhgmG-g2jQt4VrBK51gkTWet0hA2QU/edit#gid=0
-                    /**/
-                    if (o.from > o.to) {
-
-                        // ? make o.from 0 and o.to infinity, the default
-                        // or do nothing, yeah do nothing
+                    if (o.to === Number.POSITIVE_INFINITY && o.from === 0) {
+                        events.push(evnt);
                     }
                     else {
 
-                        if (o.from <= 0) {
+                        // slice() to make sure a copy of the array is used, not a reference to the original object
+                        // Truth table: https://docs.google.com/spreadsheets/d/1yrLzB-RQcm5TArhgmG-g2jQt4VrBK51gkTWet0hA2QU/edit#gid=0
+                        /**/
+                        if (o.from > o.to) {
 
-                            if (o.to >= 0) {
-
-                                // Add the listener
-                                events.push(evnt);
-
-                                // Call fn if the event was already fired
-                                if (eventFired(evnt, o.from, o.to)) {
-                                    evnt.fn();
-                                }
-
-                                if (o.to !== Number.POSITIVE_INFINITY) {
-                                    // o.to is 0 to big number
-
-                                    // After a delay remove the listener and maybe call the fallback
-                                    setTimeout(function() {
-
-                                        // Remove listener
-                                        evnt.callback = doNothing;
-
-                                        // Call the fallback if the event was not fired
-                                        if (!eventFired(evnt, o.from, o.to)) {
-                                            evnt.fall();
-                                        }
-
-                                    }, o.to);
-
-                                }
-
-                            }
-                            else if (o.to !== Number.NEGATIVE_INFINITY) {
-                                // o.to is -1 to big negative number
-
-                                // Call fn if the event was already fired
-                                if (eventFired(evnt, o.from, o.to)) {
-                                    evnt.fn();
-                                }
-                                // Otherwise call the fallback
-                                else {
-                                    evnt.fall();
-                                }
-
-                            }
+                            // ? make o.from 0 and o.to infinity, the default
+                            // or do nothing, yeah do nothing
                         }
-                        else if (o.from !== Number.POSITIVE_INFINITY) {
-                            if (o.to >= 0) {
-                                // o.to is 0 to infinity
+                        else {
 
-                                // After a delay add the listener
-                                setTimeout(function() {
-                                    evnt.created = new Date() * 1;
+                            if (o.from < 0) {
+
+                                if (o.to >= 0) {
+
+                                    // Add the listener
                                     events.push(evnt);
-                                }, o.from);
 
-                                if (o.to !== Number.POSITIVE_INFINITY) {
-                                    // o.to is 0 to big number
-                                    // After a delay remove the listener and maybe call the fallback
-                                    setTimeout(function() {
-                                        // Remove the listener
-                                        evnt.callback = doNothing;
-                                        // Call the fallback if the event was not fired
-                                        if (!eventFired(evnt, o.from, o.to)) {
-                                            evnt.fall();
-                                        }
-                                    }, o.to);
+                                    // Call fn if the event was already fired
+                                    if (hasEventFired(evnt, o.from, o.to)) {
+                                        evnt.fn();
+                                    }
+
+                                    if (o.to !== Number.POSITIVE_INFINITY) {
+                                        // o.to is 0 to big number
+
+                                        // After a delay remove the listener and maybe call the fallback
+                                        setTimeout(function() {
+
+                                            // Remove listener
+                                            evnt.callback = doNothing;
+
+                                            // Call the fallback if the event was not fired
+                                            if (!hasEventFired(evnt, o.from, o.to)) {
+                                                evnt.fall();
+                                            }
+
+                                        }, o.to);
+
+                                    }
+
                                 }
+                                else if (o.to !== Number.NEGATIVE_INFINITY) {
+                                    // o.to is -1 to big negative number
 
+                                    // Call fn if the event was already fired
+                                    if (hasEventFired(evnt, o.from, o.to)) {
+                                        evnt.fn();
+                                    }
+                                    // Otherwise call the fallback
+                                    else {
+                                        evnt.fall();
+                                    }
+
+                                }
+                            }
+                            else if (o.from !== Number.POSITIVE_INFINITY) {
+
+                                if (o.to >= 0) {
+                                    // o.to is 0 to infinity
+
+                                    // After a delay add the listener
+                                    setTimeout(function() {
+                                        evnt.created = new Date() * 1;
+                                        events.push(evnt);
+                                    }, o.from);
+
+                                    if (o.to !== Number.POSITIVE_INFINITY) {
+                                        // o.to is 0 to big number
+                                        // After a delay remove the listener and maybe call the fallback
+                                        setTimeout(function() {
+                                            // Remove the listener
+                                            evnt.callback = doNothing;
+                                            // Call the fallback if the event was not fired
+                                            if (!hasEventFired(evnt, o.from, o.to)) {
+                                                evnt.fall();
+                                            }
+                                        }, o.to);
+
+                                    }
+
+                                }
                             }
                         }
                     }
+
                     /**/
                 }
                 // Else remove the event handler
@@ -358,135 +362,3 @@ console.log('_when',this);
     context.eventStream = wrap();
 
 }(this));
-//             c--
-//            /
-//       b----
-//      /
-// -a---
-//      \
-//       bb-------
-//
-// -z-------------
-
-
-//  if b fired
-//      default, down stream
-//          handlers for b and c called
-//      up stream
-//          handlers for b and a called
-//
-//  e.stopPropagation prevents down or up stream propagation
-//  e.stopImmediatePropagation prevents any other same stream handers firing and stops down or up stream propagation
-//
-//
-
-
-    // A wee bit of testing
-    var a = eventStream;
-    var b = a.new('b');
-    var c = b.new('c');
-    var bb = a.new('bb');
-    var z = c.new('z',true);
-
-    a.on('bob', function() {console.log('a1');});
-    c.on('bob', function() {console.log('c2');});
-    b.on('bob', function() {console.log('b3');});
-    a.on('bob', function() {console.log('a4');});
-    b.on('bob', function() {console.log('b5');});
-    a.on('bob', function() {console.log('a6');});
-    a.on('bob', 5000, function() {console.log('a7 callback');}, function() {console.log('a7 fallback');});
-    //c.on('bob');
-    //b.call('bob');
-    c.call(1, 'bob');
-    a.call('bob');
-console.log(a);
-console.log(b);
-console.log(c);
-console.log(z);
-// a.call by default fires a, b, c in order each event was added
-// b.call by default fires b, c in order each event was added
-// c.call by default fires c in order each event was added
-
-
-/*
-
-    console.log(context.eventStream);
-    console.log(a);
-    console.log(b);
-    console.log(c);
-    console.log(bb);
-
-    //a.call('the door opens', 'a made the call before a handler was set'); // Should not fire
-    //b.call('the door opens', 'b made the call before a handler was set'); // Should not fire
-    //bb.call('the door opens', 'bb made the call before a handler was set'); // Should not fire
-    c.call('the door opens', 'c made the call before a handler was set'); // Should not fire
-
-    //a.if('the door opens', 5000, function(e, data) {
-    //    console.log('door opened ns a, ', data);
-    //});
-    b.when('the door opens', function(e, data) {
-        console.log('door opened ns b, ', data);
-    });
-    c.when('the door opens', function(e, data) {
-        console.log('door opened ns c, ', data);
-    });
-    z.when('the door opens', function(e, data) {
-        console.log('door opened ns z, ', data);
-    });
-    a.when('the door opens', function(e, data) {
-        console.log('door opened ns a, ', data);
-    });
-    a.when('the door opens', function(e, data) {
-        console.log('door opened ns a2, ', data);
-    });
-
-    a.call('the door opens', 'a made the call'); // Should fire
-    b.call('the door opens', 'b made the call'); // Should fire
-    bb.call('the door opens', 'bb made the call'); // Should not fire
-    c.call('the door opens', 'c made the call'); // Should not fire
-
-    c.when('the door opens', function() {console.log('second c');});
-    b.when('the door opens');
-    a.call('the door opens', 'a made the call after removing b'); // Should fire two c but no b
-    z.call('the door opens', 'z made the call'); // Should fire two c but no b
-
-    a.when('the door is opened', doNothing);
-    a.on('the door being opened', doNothing);
-    a.call('the door being opened', doNothing);
-
-*/
-
-
-//var fn = function() {
-//    console.log('fn');
-//};
-//var fall = function() {
-//    console.log('fall');
-//};
-//a.when('bob',fn);
-    //a.when('bob',5000,fn,fall); // keep handler in place for 5 seconds
-    //a.when('bob',-5000,fn,fall); // keep handler in place for 5 seconds
-    //a.when('bob',-8,8,fn,fall);
-    //a.when('bob',-8, 5000,fn,fall); // keep handler in place for 5 seconds, and trigger if already called
-    //a.when('bob',-5000,5000,fn,fall); // keep handler in place for 5 seconds, and trigger if already called in the last 5 seconds
-    // 8 used because it is similar to the infinity sign, and who is going to set something to +-8ms?
-
-    //var $ = {ajax:function(){return {done:doNothing};}};
-    //$.ajax('some.json').done(function() {
-    //    es.trigger('ajax loaded');
-    //    es.call('ajax loaded');
-    //    es.do('ajax loaded');
-    //    //es.fire('ajax loaded');
-    //    //es.trip('ajax loaded');
-    //});
-
-    //es.when('ajax loaded', function() {
-    //});
-    //es.on('ajax loaded', function() {
-    //});
-    //// Could be slightly different than the others, in that if "ajax loaded" has
-    //// been fired already then it will do something
-    //// This is different to when and on, which only do something when "ajax loaded"
-    //// is fired
-    //es.if('ajax loaded', function() {
-    //});
