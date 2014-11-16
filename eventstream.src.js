@@ -44,9 +44,30 @@
             eventFired;
 
         eventFired = function(evnt, from, to) {
-            console.log('eventFired',evnt, history);
-            //history = {date, o:{id,anything,stream}}
-            //evnt = {callback, streamsPath[], created}
+console.log('eventFired',evnt, history);
+            //history = [{date, id,anything,stream}]
+            //evnt = {callback, stream, created, fall}
+            var upperBound = evnt.created + to,
+                lowerBound = evnt.created - from,
+                callback = false,
+                i;
+            for (i = history.length - 1; i > -1; i--) {
+                if (history[i].date >= lowerBound && history[i].date <= upperBound) {
+                    callback = true;
+                    break;
+                }
+            }
+            if (callback) {
+                evnt.callback();
+            }
+            else {
+                evnt.fall();
+            }
+            //event created at 3000
+            //eventfired at 8000
+            //if eventfired between eventcreated-from and eventcreated+to then call callback
+            //else fall
+
         };
 
         eventStream = {
@@ -75,7 +96,7 @@ console.log('_call',this);
 
                 // Maintain a history log that can be made use of in the _when function
                 date = new Date() * 1;
-                history.push({date:date, o:{id:id, anything:anything, stream:this}});
+                history.push({date:date, id:id, anything:anything, stream:this});
 
                 // Do propagation
                 if (propagate !== 0) {
@@ -135,14 +156,15 @@ console.log('_when',this);
                     evnt = {
                         callback:fn,
                         stream:this,
-                        created:new Date() * 1
+                        created:new Date() * 1,
+                        fall:o.fall || doNothing
                     };
 
                     events.push(evnt);
 
                     // slice() to make sure a copy of the array is used, not a reference to the original object
                     // Truth table: https://docs.google.com/spreadsheets/d/1yrLzB-RQcm5TArhgmG-g2jQt4VrBK51gkTWet0hA2QU/edit#gid=0
-                    /*
+                    /**/
                     if (o.from > o.to) {
 
                         // ? make o.from 0 and o.to infinity, the default
@@ -221,7 +243,7 @@ console.log('_when',this);
                             }
                         }
                     }
-                    */
+                    /**/
                 }
                 // Else remove the event handler
                 else {
@@ -275,24 +297,42 @@ console.log('_when',this);
 
         // Handlers
         eventStream.if = eventStream.on = eventStream.off = eventStream.when = function(a,b,c,d,e) {
-            var o = {id:a,to:Number.POSITIVE_INFINITY,from:0,fn:doNothing,fall:doNothing};
+
+            var o = {
+                id:a,
+                to:Number.POSITIVE_INFINITY,
+                from:0,
+                fn:doNothing,
+                fall:doNothing
+            };
+
             if (typeOf(b) === 'boolean') {
                 b = b ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
             }
-            if (typeOf(b) === 'number') {
-                o.to = b;
-                b=c;c=d;d=e;
+            if (typeOf(c) === 'boolean') {
+                c = c ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
             }
-            if (typeOf(b) === 'boolean') {
-                b = b ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
-            }
-            if (typeOf(b) === 'number') {
+            if (typeOf(b) === 'number' && typeOf(c) === 'number') {
                 o.from = b;
+                o.to = c;
+                b=d;c=e;
+            }
+            else if (typeOf(b) === 'number') {
+                if (b > 0) {
+                    o.to = b;
+                    o.from = 0;
+                }
+                else {
+                    o.to = 0;
+                    o.from = b;
+                }
                 b=c;c=d;
             }
             o.fn = b;
             o.fall = c;
+
             this._when(o);
+
         };
 
         // Triggers
@@ -354,9 +394,11 @@ console.log('_when',this);
     a.on('bob', function() {console.log('a4');});
     b.on('bob', function() {console.log('b5');});
     a.on('bob', function() {console.log('a6');});
+    a.on('bob', 5000, function() {console.log('a7 callback');}, function() {console.log('a7 fallback');});
     //c.on('bob');
     //b.call('bob');
-    b.call(-1, 'bob');
+    c.call(1, 'bob');
+    a.call('bob');
 console.log(a);
 console.log(b);
 console.log(c);
