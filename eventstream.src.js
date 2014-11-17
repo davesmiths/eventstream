@@ -53,7 +53,11 @@ console.log('hasEventFired',evnt, history);
                 i;
             for (i = history.length - 1; i > -1; i--) {
 console.log('history[i]',history[i]);
+console.log('lower',lowerBound);
+console.log('dater',history[i].date);
+console.log('upper',upperBound);
                 if (history[i].date >= lowerBound && history[i].date <= upperBound) {
+console.log('history[i] match',history[i]);
                     eventFired = true;
                     break;
                 }
@@ -156,7 +160,6 @@ console.log('_when',this);
                         fall:o.fall || doNothing
                     };
 
-
                     if (o.to === Number.POSITIVE_INFINITY && o.from === 0) {
                         events.push(evnt);
                     }
@@ -222,11 +225,17 @@ console.log('_when',this);
                                 if (o.to >= 0) {
                                     // o.to is 0 to infinity
 
-                                    // After a delay add the listener
-                                    setTimeout(function() {
-                                        evnt.created = new Date() * 1;
+                                    if (o.from === 0) {
                                         events.push(evnt);
-                                    }, o.from);
+                                    }
+                                    else {
+
+                                        // After a delay add the listener
+                                        setTimeout(function() {
+                                            evnt.created = new Date() * 1;
+                                            events.push(evnt);
+                                        }, o.from);
+                                    }
 
                                     if (o.to !== Number.POSITIVE_INFINITY) {
                                         // o.to is 0 to big number

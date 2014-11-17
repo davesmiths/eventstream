@@ -38,7 +38,7 @@ a.on('bob', 5000, function() {console.log('a7 callback');}, function() {console.
 //c.on('bob');
 //b.call('bob');
 console.log('calls');
-c.call(1, 'bob');
+//c.call(1, 'bob');
 a.call('bob');
 
 console.log(a);
