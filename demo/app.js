@@ -32,19 +32,18 @@ a.on('bob', function() {console.log('a1');});
 c.on('bob', function() {console.log('c2');});
 b.on('bob', function() {console.log('b3');});
 a.on('bob', function() {console.log('a4');});
+b.call('bob');
 b.on('bob', function() {console.log('b5');});
 a.on('bob', function() {console.log('a6');});
-a.on('bob', 5000, function() {console.log('a7 callback');}, function() {console.log('a7 fallback');});
+a.on('bob', -1000, function() {console.log('a7 callback');}, function() {console.log('a7 fallback');});
 //c.on('bob');
-//b.call('bob');
-console.log('calls');
+//console.log('calls');
 //c.call(1, 'bob');
-a.call('bob');
 
-console.log(a);
-console.log(b);
-console.log(c);
-console.log(z);
+//console.log(a);
+//console.log(b);
+//console.log(c);
+//console.log(z);
 
 // a.call by default fires a, b, c in order each event was added
 // b.call by default fires b, c in order each event was added

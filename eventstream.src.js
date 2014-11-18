@@ -44,20 +44,19 @@
             hasEventFired;
 
         hasEventFired = function(evnt, from, to) {
-console.log('hasEventFired',evnt, history);
             //history = [{date, id,anything,stream}]
             //evnt = {callback, stream, created, fall}
             var upperBound = evnt.created + to,
-                lowerBound = evnt.created - from,
+                lowerBound = evnt.created + from,
                 eventFired = false,
                 i;
             for (i = history.length - 1; i > -1; i--) {
-console.log('history[i]',history[i]);
+//console.log('history[i]',history[i]);
 console.log('lower',lowerBound);
 console.log('dater',history[i].date);
 console.log('upper',upperBound);
                 if (history[i].date >= lowerBound && history[i].date <= upperBound) {
-console.log('history[i] match',history[i]);
+//console.log('history[i] match',history[i]);
                     eventFired = true;
                     break;
                 }
@@ -66,6 +65,7 @@ console.log('history[i] match',history[i]);
             //eventfired at 8000
             //if eventfired between eventcreated-from and eventcreated+to then call callback
             //else fall
+console.log('hasEventFired returns', eventFired);
             return eventFired;
         };
 
@@ -73,7 +73,7 @@ console.log('history[i] match',history[i]);
 
             _call: function(o) {
 
-console.log('_call',this);
+console.log('_call made',this);
 
                 var id = o.id,
                     anything = o.anything,
@@ -96,7 +96,7 @@ console.log('_call',this);
                 // Maintain a history log that can be made use of in the _when function
                 date = new Date() * 1;
                 history.push({date:date, id:id, anything:anything, stream:this});
-console.log('history',history);
+//console.log('history',history);
 
                 // Do propagation
                 if (propagate !== 0) {
@@ -134,7 +134,7 @@ console.log('history',history);
             },
 
             _when: function(o) {
-console.log('_when',this);
+console.log('_when done',this);
                 var id = o.id,
                     fn = o.fn,
                     now = o.now,
@@ -178,16 +178,17 @@ console.log('_when',this);
                             if (o.from < 0) {
 
                                 if (o.to >= 0) {
-
+console.log('hello', o.from, o.to);
                                     // Add the listener
                                     events.push(evnt);
 
                                     // Call fn if the event was already fired
                                     if (hasEventFired(evnt, o.from, o.to)) {
-                                        evnt.fn();
+                                        evnt.callback();
                                     }
 
                                     if (o.to !== Number.POSITIVE_INFINITY) {
+                                        // o.from is less than 0
                                         // o.to is 0 to big number
 
                                         // After a delay remove the listener and maybe call the fallback
@@ -211,7 +212,7 @@ console.log('_when',this);
 
                                     // Call fn if the event was already fired
                                     if (hasEventFired(evnt, o.from, o.to)) {
-                                        evnt.fn();
+                                        evnt.callback();
                                     }
                                     // Otherwise call the fallback
                                     else {
