@@ -32,14 +32,22 @@ a.on('bob', function() {console.log('a1');});
 c.on('bob', function() {console.log('c2');});
 b.on('bob', function() {console.log('b3');});
 a.on('bob', function() {console.log('a4');});
-b.call('bob');
 b.on('bob', function() {console.log('b5');});
 a.on('bob', function() {console.log('a6');});
-a.on('bob', -1000, function() {console.log('a7 callback');}, function() {console.log('a7 fallback');});
+a.call('bob');
+setTimeout(function() {
+    a.on('bob', -1000, function() {console.log('a7 callback');}, function() {console.log('a7 fallback');});
+},2000);
 //c.on('bob');
 //console.log('calls');
 //c.call(1, 'bob');
 
+//b.call(-2, 'bob', anything); // up streams only
+//b.call(-1, 'bob', anything); // current stream and then each up stream
+//b.call(0, 'bob', anything); // current stream only
+//b.call(1, 'bob', anything); // current stream and then each down stream
+//b.call(2, 'bob', anything); // down streams only
+//b.call('bob', anything); // same as b.call(1, 'bob', anything);
 //console.log(a);
 //console.log(b);
 //console.log(c);

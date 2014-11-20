@@ -52,9 +52,9 @@
                 i;
             for (i = history.length - 1; i > -1; i--) {
 //console.log('history[i]',history[i]);
-console.log('lower',lowerBound);
-console.log('dater',history[i].date);
-console.log('upper',upperBound);
+//console.log('lower',lowerBound);
+//console.log('dater',history[i].date);
+//console.log('upper',upperBound);
                 if (history[i].date >= lowerBound && history[i].date <= upperBound) {
 //console.log('history[i] match',history[i]);
                     eventFired = true;
@@ -65,7 +65,7 @@ console.log('upper',upperBound);
             //eventfired at 8000
             //if eventfired between eventcreated-from and eventcreated+to then call callback
             //else fall
-console.log('hasEventFired returns', eventFired);
+//console.log('hasEventFired returns', eventFired);
             return eventFired;
         };
 
@@ -100,9 +100,9 @@ console.log('_call made',this);
 
                 // Do propagation
                 if (propagate !== 0) {
-                    upDownStreamProp = propagate === -1 ? 'downStream' : 'upStream';
+                    upDownStreamProp = propagate === -1 ? 'upStream' : 'downStream';
                 }
-
+console.log('upDownStreamProp',propagate,upDownStreamProp);
                 thing = function(callStream) {
 
                     var callUpDownStream,
@@ -354,7 +354,7 @@ console.log('hello', o.from, o.to);
         // propagate downstream
         // propagate stream only
         eventStream.do = eventStream.trigger = eventStream.call = function(a,b,c) {
-            var o = {id:a, anything:b, propagate:-1};
+            var o = {id:a, anything:b, propagate:1};
             if (typeOf(a) === 'number') {
                 o.propagate = a;
                 o.id = b;
