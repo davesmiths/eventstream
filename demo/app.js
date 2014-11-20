@@ -42,11 +42,11 @@ setTimeout(function() {
 //console.log('calls');
 //c.call(1, 'bob');
 
-//b.call(-2, 'bob', anything); // up streams only
+//b.call(-2, 'bob', anything); // up streams only, not sure if I can do this yet
 //b.call(-1, 'bob', anything); // current stream and then each up stream
 //b.call(0, 'bob', anything); // current stream only
 //b.call(1, 'bob', anything); // current stream and then each down stream
-//b.call(2, 'bob', anything); // down streams only
+//b.call(2, 'bob', anything); // down streams only, not sure if I can do this yet
 //b.call('bob', anything); // same as b.call(1, 'bob', anything);
 //console.log(a);
 //console.log(b);
