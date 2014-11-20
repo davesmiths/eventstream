@@ -55,7 +55,7 @@
 //console.log('lower',lowerBound);
 //console.log('dater',history[i].date);
 //console.log('upper',upperBound);
-                if (history[i].date >= lowerBound && history[i].date <= upperBound) {
+                if (evnt.stream === history[i].stream && history[i].date >= lowerBound && history[i].date <= upperBound) {
 //console.log('history[i] match',history[i]);
                     eventFired = true;
                     break;
@@ -95,7 +95,6 @@ console.log('_call made',this);
 
                 // Maintain a history log that can be made use of in the _when function
                 date = new Date() * 1;
-                history.push({date:date, id:id, anything:anything, stream:this});
 //console.log('history',history);
 
                 // Do propagation
@@ -116,9 +115,16 @@ console.log('upDownStreamProp',propagate,upDownStreamProp);
 
                         if (evnt.stream === callStream) {
                             evnt.callback(e, anything);
+                            history.push({
+                                date:date,
+                                id:id,
+                                anything:anything,
+                                stream:callStream
+                            });
                         }
 
                     }
+
 
                     if (propagate !== 0) {
                         callUpDownStream = callStream[upDownStreamProp];
