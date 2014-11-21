@@ -22,7 +22,7 @@
 
 
 // A wee bit of testing
-var a = eventStream;
+var a = eventstream;
 var b = a.new('b');
 var c = b.new('c');
 var bb = a.new('bb');
@@ -59,7 +59,7 @@ setTimeout(function() {
 
 /*
 
-    console.log(context.eventStream);
+    console.log(context.eventstream);
     console.log(a);
     console.log(b);
     console.log(c);
@@ -197,3 +197,7 @@ setTimeout(function() {
 ////    finds the id and calls all callbacks
 ////*/
 //
+//  Event
+//      Listener: An event pushed into a register that will be called if a matching event is fired into the stream
+//      Callback: A function that is called if a listener is matched
+//      Trigger: Method to fire an event into a stream

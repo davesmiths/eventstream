@@ -1,25 +1,9 @@
-// Custom events
-//asdasdasdasdasdasdasdasdasdasd
+// eventstream
 (function(context, undef) {
 
     'use strict';
 
-//
-//  .new('label') which can be later used to retrieve a particular stream
-//
-//  Event
-//      Listener: An event pushed into a register that will be called if a matching event is fired into the stream
-//      Callback: A function that is called if a listener is matched
-//      Trigger: Method to fire an event into a stream
-//
-// Event listener callbacks are called in order of time attached
-// this means a listener attached to the root stream could be called before
-// a listener in a substream because it was attached before the substream
-// And equally the reverse is true.
-// I'm not sure if this is correct to do, or whether substreams are better
-// prioritised over superstreams. Or visa-versa
-
-    // Thanks to Crockford
+    // Object.create, thanks to Crockford
     if (typeof Object.create !== 'function') {
         Object.create = function (o) {
             function F() {}
@@ -39,7 +23,7 @@
 
     wrap = function() {
 
-        var eventStream,
+        var eventstream,
             eventNames = {},
             history = [],
             hasEventFired;
@@ -70,7 +54,7 @@
             return eventFired;
         };
 
-        eventStream = {
+        eventstream = {
 
             _call: function(o) {
 
@@ -313,11 +297,11 @@ console.log('hello', o.from, o.to);
         };
 
         // Add up and down stream arrays to capture the immediate super and sub streams
-        eventStream.upStream = [];
-        eventStream.downStream = [];
+        eventstream.upStream = [];
+        eventstream.downStream = [];
 
         // Handlers
-        eventStream.if = eventStream.on = eventStream.off = eventStream.when = function(a,b,c,d,e) {
+        eventstream.if = eventstream.on = eventstream.off = eventstream.when = function(a,b,c,d,e) {
 
             var o = {
                 id:a,
@@ -360,7 +344,7 @@ console.log('hello', o.from, o.to);
         // propagate upstream
         // propagate downstream
         // propagate stream only
-        eventStream.do = eventStream.trigger = eventStream.call = function(a,b,c) {
+        eventstream.do = eventstream.trigger = eventstream.call = function(a,b,c) {
             var o = {id:a, anything:b, propagate:1};
             if (typeOf(a) === 'number') {
                 o.propagate = a;
@@ -370,12 +354,12 @@ console.log('hello', o.from, o.to);
             this._call(o);
         };
 
-        eventStream.label = 'root';
+        eventstream.label = 'root';
 
-        return eventStream;
+        return eventstream;
 
     };
 
-    context.eventStream = wrap();
+    context.eventstream = wrap();
 
 }(this));
