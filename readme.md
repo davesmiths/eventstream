@@ -10,7 +10,7 @@ eventstream.on('eventname', function(e, thing) {
     //callback
 });
 // Adds a listener for the event 'eventname'
-// When triggered calls callback
+// When triggered calls the callback
 
 eventstream.on('eventname');
 // Removes a listener
@@ -50,7 +50,7 @@ eventstream.call(1, 'eventname', thing);
 // on this stream (eventstream) and any down stream
 
 eventstream.call(0, 'eventname', thing);
-// Trigger eventname only this stream
+// Trigger eventname only on this stream
 
 eventstream.call(-1, 'eventname', thing);
 // Trigger eventname on this stream and any up stream
