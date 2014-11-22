@@ -58,7 +58,7 @@
 
             _call: function(o) {
 
-console.log('_call made',this);
+//console.log('_call made',this);
 
                 var id = o.id,
                     anything = o.anything,
@@ -88,7 +88,7 @@ console.log('_call made',this);
                     propagate = Math.abs(propagate);
 
                 }
-console.log('upDownStreamProp',propagate,upDownStreamProp);
+//console.log('upDownStreamProp',propagate,upDownStreamProp);
                 thing = function(callStream, doIt) {
 
                     var callUpDownStream,
@@ -164,7 +164,6 @@ console.log('upDownStreamProp',propagate,upDownStreamProp);
 
                         // slice() to make sure a copy of the array is used, not a reference to the original object
                         // Truth table: https://docs.google.com/spreadsheets/d/1yrLzB-RQcm5TArhgmG-g2jQt4VrBK51gkTWet0hA2QU/edit#gid=0
-                        /**/
                         if (o.from > o.to) {
 
                             // ? make o.from 0 and o.to infinity, the default
@@ -175,7 +174,7 @@ console.log('upDownStreamProp',propagate,upDownStreamProp);
                             if (o.from < 0) {
 
                                 if (o.to >= 0) {
-console.log('hello', o.from, o.to);
+//console.log('hello', o.from, o.to);
                                     // Add the listener
                                     events.push(evnt);
 
@@ -253,8 +252,6 @@ console.log('hello', o.from, o.to);
                             }
                         }
                     }
-
-                    /**/
                 }
                 // Else remove the event handler
                 else {
