@@ -1,7 +1,7 @@
 eventstream
 ===
 
-__Nearly ready to use, but not just yet__
+__Nearly there; needs a bit of testing and so__
 
 Listeners
 ---
