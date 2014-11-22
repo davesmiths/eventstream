@@ -58,6 +58,7 @@ eventstream.call(-1, 'eventname', thing);
 Aliases
 eventstream.call
 eventstream.do
+eventstream.fire
 eventstream.trigger
 
 ```

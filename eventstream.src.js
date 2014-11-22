@@ -344,7 +344,7 @@ console.log('hello', o.from, o.to);
         // propagate upstream
         // propagate downstream
         // propagate stream only
-        eventstream.do = eventstream.trigger = eventstream.call = function(a,b,c) {
+        eventstream.trigger = eventstream.call = eventstream.do = eventstream.fire = function(a,b,c) {
             var o = {id:a, anything:b, propagate:1};
             if (typeOf(a) === 'number') {
                 o.propagate = a;
