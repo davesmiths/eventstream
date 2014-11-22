@@ -44,16 +44,23 @@ eventstream.call('eventname');
 
 eventstream.call('eventname', thing);
 // Triggers eventname and passes thing
+// on this stream (eventstream) and any down stream
 
 eventstream.call(1, 'eventname', thing);
 // Same as above, but explicitly says trigger eventname
 // on this stream (eventstream) and any down stream
+
+eventstream.call(2, 'eventname', thing);
+// Trigger eventname only on down streams (not on the called stream)
 
 eventstream.call(0, 'eventname', thing);
 // Trigger eventname only on this stream
 
 eventstream.call(-1, 'eventname', thing);
 // Trigger eventname on this stream and any up stream
+
+eventstream.call(-2, 'eventname', thing);
+// Trigger eventname only on up streams (not on the called stream)
 
 Aliases
 eventstream.call

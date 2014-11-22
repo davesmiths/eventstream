@@ -34,9 +34,11 @@ b.on('bob', function() {console.log('b3');});
 a.on('bob', function() {console.log('a4');});
 b.on('bob', function() {console.log('b5');});
 a.on('bob', function() {console.log('a6');});
-a.call(1, 'bob');
+c.call(0, 'bob');
 setTimeout(function() {
-    c.on('bob', -3000, function() {console.log('a7 callback');}, function() {console.log('a7 fallback');});
+    a.on('bob', -3000, function() {console.log('a callback');}, function() {console.log('a fallback');});
+    b.on('bob', -3000, function() {console.log('b callback');}, function() {console.log('b fallback');});
+    c.on('bob', -3000, function() {console.log('c callback');}, function() {console.log('c fallback');});
 },2000);
 //c.on('bob');
 //console.log('calls');

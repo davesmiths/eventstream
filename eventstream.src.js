@@ -84,28 +84,34 @@ console.log('_call made',this);
 
                 // Do propagation
                 if (propagate !== 0) {
-                    upDownStreamProp = propagate === -1 ? 'upStream' : 'downStream';
+                    upDownStreamProp = propagate < 0 ? 'upStream' : 'downStream';
+                    propagate = Math.abs(propagate);
+
                 }
 console.log('upDownStreamProp',propagate,upDownStreamProp);
-                thing = function(callStream) {
+                thing = function(callStream, doIt) {
 
                     var callUpDownStream,
                         callUpDownStreamLength,
                         i;
 
-                    // Loop through the events
-                    for (i = 0; i < eventsLength; i++) {
+                    if (doIt) {
 
-                        evnt = events[i];
+                        // Loop through the events
+                        for (i = 0; i < eventsLength; i++) {
 
-                        if (evnt.stream === callStream) {
-                            evnt.callback(e, anything);
-                            history.push({
-                                date:date,
-                                id:id,
-                                anything:anything,
-                                stream:callStream
-                            });
+                            evnt = events[i];
+
+                            if (evnt.stream === callStream) {
+                                evnt.callback(e, anything);
+                                history.push({
+                                    date:date,
+                                    id:id,
+                                    anything:anything,
+                                    stream:callStream
+                                });
+                            }
+
                         }
 
                     }
@@ -115,17 +121,17 @@ console.log('upDownStreamProp',propagate,upDownStreamProp);
                         callUpDownStream = callStream[upDownStreamProp];
                         callUpDownStreamLength = callUpDownStream.length;
                         for (i = 0; i < callUpDownStreamLength; i++) {
-                            thing(callUpDownStream[i]);
+                            thing(callUpDownStream[i], true);
                         }
                     }
 
                 };
-                thing(this);
+                thing(this, propagate !== 2);
 
             },
 
             _when: function(o) {
-console.log('_when done',this);
+//console.log('_when done',this);
                 var id = o.id,
                     fn = o.fn,
                     now = o.now,
