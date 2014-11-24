@@ -1,4 +1,4 @@
-eventstream
+eventstreamjs
 ===
 
 __Nearly there; needs a bit of testing and so__
