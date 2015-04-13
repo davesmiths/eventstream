@@ -1,8 +1,6 @@
 eventstreamjs
 ===
 
-__Nearly there; needs a bit of testing and so__
-
 Listeners
 ---
 ```
